@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum SubscriptionPlan {
+  TRIAL
+  BASIC
+  STANDARD
+  PREMIUM 
+  ENTERPRISE
+}
+
+enum SchoolStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+model School {
+
+  id String @id @default(cuid())
+
+  name String
+
+  code String @unique
+
+  email String @unique
+
+  phone String?
+
+  address String?
+
+  city String?
+
+  state String?
+
+  country String?
+
+  pincode String?
+
+  website String?
+
+  logo String?
+
+  principalName String?
+
+  subscription SubscriptionPlan @default(TRIAL)
+
+  status SchoolStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  settings SchoolSettings?
+}
+
+model SchoolSettings {
+
+  id String @id @default(cuid())
+
+  schoolId String @unique
+
+  school School @relation(fields: [schoolId], references: [id])
+
+  academicYear String
+
+  timezone String @default("Asia/Kolkata")
+
+  currency String @default("INR")
+
+  language String @default("en")
+
+  gradingSystem String @default("PERCENTAGE")
+
+  attendanceMethod String @default("DAILY")
+
+  allowOnlineFee Boolean @default(true)
+
+  enableTransport Boolean @default(false)
+
+  enableLibrary Boolean @default(false)
+
+  enableHostel Boolean @default(false)
+
+  enableAI Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+}
