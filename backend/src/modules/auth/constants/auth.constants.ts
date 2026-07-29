@@ -1,0 +1,4 @@
+export const AUTH_CONSTANTS = {
+  JWT_STRATEGY: 'jwt',
+  BCRYPT_SALT_ROUNDS: 10,
+};
