@@ -83,9 +83,10 @@
     "testEnvironment": "node"
   },
   "allowScripts": {
-    "prisma@7.9.1": true,
-    "@prisma/engines@7.9.1": true,
     "unrs-resolver@1.12.2": true,
-    "bcrypt@6.0.0": true
+    "bcrypt@6.0.0": true,
+    "@prisma/client@6.16.3": true,
+    "@prisma/engines@6.16.3": true,
+    "prisma@6.16.3": true
   }
 }

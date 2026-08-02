@@ -4,6 +4,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { UserRole } from '@prisma/client';
 
 import { PrismaService } from '../../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
@@ -36,7 +37,7 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Generate a unique school code
+    // Generate unique school code
     const schoolCode =
       'SCH' + Date.now().toString().slice(-6);
 
@@ -53,20 +54,20 @@ export class AuthService {
     const names = adminName.trim().split(' ');
 
     const firstName = names[0];
-
     const lastName =
       names.length > 1
         ? names.slice(1).join(' ')
         : null;
 
-    // Create Admin User
+    // Create School Admin
     const user = await this.prisma.user.create({
       data: {
         email,
         password: hashedPassword,
         firstName,
         lastName,
-        role: 'ADMIN',
+        role: UserRole.SCHOOL_ADMIN,
+        schoolId: school.id,
       },
     });
 
@@ -85,8 +86,6 @@ export class AuthService {
 
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
-    console.log('Login Email:', email);
-console.log('Login Password:', password);
 
     const user = await this.prisma.user.findUnique({
       where: { email },
@@ -101,9 +100,8 @@ console.log('Login Password:', password);
     const passwordMatched = await bcrypt.compare(
       password,
       user.password,
-      
     );
-console.log('Password Matched:', passwordMatched);
+
     if (!passwordMatched) {
       throw new BadRequestException(
         'Invalid email or password',
