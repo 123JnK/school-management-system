@@ -21,6 +21,14 @@ enum SchoolStatus {
   SUSPENDED
 }
 
+enum UserRole {
+  PLATFORM_ADMIN
+  SCHOOL_ADMIN
+  TEACHER
+  STUDENT
+  PARENT
+}
+
 model School {
   id String @id @default(cuid())
 
@@ -41,10 +49,12 @@ model School {
   subscription SubscriptionPlan @default(TRIAL)
   status       SchoolStatus     @default(ACTIVE)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  users User[]
 
   settings SchoolSettings?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model SchoolSettings {
@@ -81,9 +91,29 @@ model User {
   firstName String?
   lastName  String?
 
-  role     String  @default("ADMIN")
+  phone String?
+
+  gender String?
+
+  profilePhoto String?
+
+  role UserRole @default(SCHOOL_ADMIN)
+
+  schoolId String?
+  school   School? @relation(fields: [schoolId], references: [id])
+
   isActive Boolean @default(true)
+
+  emailVerified Boolean @default(false)
+
+  phoneVerified Boolean @default(false)
+
+  lastLogin DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([schoolId])
+  @@index([schoolId, role])
+  @@index([schoolId, isActive])
 }
