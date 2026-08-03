@@ -29,6 +29,19 @@ enum UserRole {
   PARENT
 }
 
+enum TeacherStatus {
+  ACTIVE
+  INACTIVE
+  ON_LEAVE
+  RESIGNED
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+}
+
 model School {
   id String @id @default(cuid())
 
@@ -49,7 +62,8 @@ model School {
   subscription SubscriptionPlan @default(TRIAL)
   status       SchoolStatus     @default(ACTIVE)
 
-  users User[]
+  users    User[]
+  teachers Teacher[]
 
   settings SchoolSettings?
 
@@ -61,7 +75,7 @@ model SchoolSettings {
   id String @id @default(cuid())
 
   schoolId String @unique
-  school   School @relation(fields: [schoolId], references: [id])
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   academicYear String
 
@@ -91,8 +105,7 @@ model User {
   firstName String?
   lastName  String?
 
-  phone String?
-
+  phone  String?
   gender String?
 
   profilePhoto String?
@@ -100,12 +113,13 @@ model User {
   role UserRole @default(SCHOOL_ADMIN)
 
   schoolId String?
-  school   School? @relation(fields: [schoolId], references: [id])
+  school   School? @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  teacher Teacher?
 
   isActive Boolean @default(true)
 
   emailVerified Boolean @default(false)
-
   phoneVerified Boolean @default(false)
 
   lastLogin DateTime?
@@ -116,4 +130,46 @@ model User {
   @@index([schoolId])
   @@index([schoolId, role])
   @@index([schoolId, isActive])
+}
+
+model Teacher {
+  id String @id @default(cuid())
+
+  teacherCode String
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  designation String?
+  department  String?
+
+  qualification   String?
+  experienceYears Int?
+
+  employmentType EmploymentType @default(FULL_TIME)
+
+  joiningDate DateTime
+
+  dateOfBirth DateTime?
+
+  bloodGroup String?
+
+  address String?
+
+  emergencyContact String?
+
+  photo String?
+
+  status TeacherStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([schoolId, teacherCode])
+  @@index([schoolId])
+  @@index([status])
+  @@index([schoolId, status])
 }
