@@ -165,6 +165,15 @@ model Teacher {
 
   status TeacherStatus @default(ACTIVE)
 
+  // ===== Soft Delete =====
+  isDeleted Boolean @default(false)
+
+  deletedAt DateTime?
+
+  deletedBy String?
+
+  // =======================
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -172,4 +181,6 @@ model Teacher {
   @@index([schoolId])
   @@index([status])
   @@index([schoolId, status])
+  @@index([isDeleted])
+  @@index([schoolId, isDeleted])
 }

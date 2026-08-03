@@ -3,37 +3,35 @@ import {
   IsEmail,
   IsEnum,
   IsInt,
-  IsNotEmpty,
   IsOptional,
+  IsPhoneNumber,
   IsString,
+  MaxLength,
   Min,
-  MinLength,
 } from 'class-validator';
 
-import { EmploymentType } from '@prisma/client';
+import {
+  EmploymentType,
+  TeacherStatus,
+} from '@prisma/client';
 
-export class CreateTeacherDto {
+export class UpdateTeacherDto {
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  teacherCode: string;
-
-  @IsEmail()
-  email: string;
-
-  @IsString()
-  @MinLength(6)
-  password: string;
-
-  @IsString()
-  @IsNotEmpty()
-  firstName: string;
+  @MaxLength(100)
+  firstName?: string;
 
   @IsOptional()
   @IsString()
+  @MaxLength(100)
   lastName?: string;
 
   @IsOptional()
-  @IsString()
+  @IsEmail()
+  email?: string;
+
+  @IsOptional()
+  @IsPhoneNumber('IN')
   phone?: string;
 
   @IsOptional()
@@ -61,12 +59,13 @@ export class CreateTeacherDto {
   @IsEnum(EmploymentType)
   employmentType?: EmploymentType;
 
+  @IsOptional()
   @IsDateString()
-  joiningDate: string;
+  joiningDate?: Date;
 
   @IsOptional()
   @IsDateString()
-  dateOfBirth?: string;
+  dateOfBirth?: Date;
 
   @IsOptional()
   @IsString()
@@ -83,4 +82,8 @@ export class CreateTeacherDto {
   @IsOptional()
   @IsString()
   photo?: string;
+
+  @IsOptional()
+  @IsEnum(TeacherStatus)
+  status?: TeacherStatus;
 }
