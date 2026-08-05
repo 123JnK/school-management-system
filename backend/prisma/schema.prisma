@@ -1,3 +1,30 @@
+//============================================================
+// MySchool Platform
+// Prisma Schema V02
+// Version : 1.0 Foundation
+// Architecture : Multi-Tenant School ERP SaaS
+//
+// This schema is designed to support:
+//
+// ✔ Android App
+// ✔ Web Portal
+// ✔ Multi-School SaaS
+// ✔ AI Features
+// ✔ Future Enterprise Expansion
+//
+// IMPORTANT
+// ----------
+// • Never delete production models.
+// • New features should extend the schema.
+// • Prefer optional fields over destructive changes.
+//============================================================
+
+
+//============================================================
+// SECTION 01
+// PRISMA CONFIGURATION
+//============================================================
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,6 +34,15 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+//============================================================
+// SECTION 02
+// GLOBAL ENUMS
+//============================================================
+
+//------------------------------------------------------------
+// Subscription
+//------------------------------------------------------------
+
 enum SubscriptionPlan {
   TRIAL
   BASIC
@@ -15,19 +51,64 @@ enum SubscriptionPlan {
   ENTERPRISE
 }
 
+//------------------------------------------------------------
+// School
+//------------------------------------------------------------
+
 enum SchoolStatus {
   ACTIVE
   INACTIVE
   SUSPENDED
 }
 
+//------------------------------------------------------------
+// User Roles
+// NOTE:
+// This is ONLY for authentication.
+// Employee responsibilities are handled separately.
+//------------------------------------------------------------
+
 enum UserRole {
   PLATFORM_ADMIN
   SCHOOL_ADMIN
-  TEACHER
+  EMPLOYEE
   STUDENT
   PARENT
 }
+
+//------------------------------------------------------------
+// Employee
+//------------------------------------------------------------
+
+enum EmployeeStatus {
+  ACTIVE
+  INACTIVE
+  ON_LEAVE
+  RESIGNED
+  RETIRED
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  VISITING
+  INTERN
+}
+
+//------------------------------------------------------------
+// Gender
+//------------------------------------------------------------
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+//------------------------------------------------------------
+// Teacher
+//------------------------------------------------------------
 
 enum TeacherStatus {
   ACTIVE
@@ -35,152 +116,8162 @@ enum TeacherStatus {
   ON_LEAVE
   RESIGNED
 }
+//============================================================
+// SECTION 03
+// FOUNDATION MODULE
+//============================================================
+//
+// This section contains the core entities of the ERP.
+// Every other module depends on these tables.
+//
+// Models
+// -------
+// School
+// SchoolSettings
+// AcademicSession
+// AcademicYear
+// HolidayCalendar
+//
+//============================================================
 
-enum EmploymentType {
-  FULL_TIME
-  PART_TIME
-  CONTRACT
-}
+//============================================================
+// SCHOOL
+//============================================================
 
 model School {
+
   id String @id @default(cuid())
 
-  name  String
-  code  String @unique
-  email String @unique
+  // ---------- Basic Information ----------
+  name String
+  code String @unique
 
-  phone         String?
-  address       String?
-  city          String?
-  state         String?
-  country       String?
-  pincode       String?
-  website       String?
-  logo          String?
+  email String @unique
+  phone String?
+
+  website String?
+
+  logo String?
+
   principalName String?
 
+  // ---------- Address ----------
+  address String?
+  city String?
+  district String?
+  state String?
+  country String?
+  pincode String?
+
+  // ---------- Subscription ----------
   subscription SubscriptionPlan @default(TRIAL)
-  status       SchoolStatus     @default(ACTIVE)
 
-  users    User[]
-  teachers Teacher[]
+  status SchoolStatus @default(ACTIVE)
 
+  // ---------- Relationships ----------
   settings SchoolSettings?
 
+  users User[]
+
+  employees Employee[]
+
+  teachers Teacher[]
+
+  departments Department[]
+
+  designations Designation[]
+
+  academicYears AcademicYear[]
+
+  academicSessions AcademicSession[]
+
+  holidayCalendars HolidayCalendar[]
+
+  // ---------- Audit ----------
   createdAt DateTime @default(now())
+
   updatedAt DateTime @updatedAt
+
 }
 
+//============================================================
+// SCHOOL SETTINGS
+//============================================================
+
 model SchoolSettings {
+
   id String @id @default(cuid())
 
   schoolId String @unique
-  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
-  academicYear String
+  school School
+    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  //----------------------------------------------------------
+  // Academic
+  //----------------------------------------------------------
+
+  currentAcademicYear String
+
+  //----------------------------------------------------------
+  // Regional Settings
+  //----------------------------------------------------------
 
   timezone String @default("Asia/Kolkata")
+
   currency String @default("INR")
+
   language String @default("en")
 
-  gradingSystem    String @default("PERCENTAGE")
+  //----------------------------------------------------------
+  // Academic Behaviour
+  //----------------------------------------------------------
+
+  gradingSystem String @default("PERCENTAGE")
+
   attendanceMethod String @default("DAILY")
 
-  allowOnlineFee  Boolean @default(true)
+  //----------------------------------------------------------
+  // Enabled Modules
+  //----------------------------------------------------------
+
+  enableAttendance Boolean @default(true)
+
+  enableHomework Boolean @default(true)
+
+  enableFee Boolean @default(true)
+
+  enableExamination Boolean @default(true)
+
   enableTransport Boolean @default(false)
-  enableLibrary   Boolean @default(false)
-  enableHostel    Boolean @default(false)
-  enableAI        Boolean @default(true)
+
+  enableLibrary Boolean @default(false)
+
+  enableHostel Boolean @default(false)
+
+  enableAI Boolean @default(true)
+
+  //----------------------------------------------------------
+  // Audit
+  //----------------------------------------------------------
 
   createdAt DateTime @default(now())
+
   updatedAt DateTime @updatedAt
+
 }
 
-model User {
+//============================================================
+// ACADEMIC YEAR
+//============================================================
+
+model AcademicYear {
+
   id String @id @default(cuid())
 
-  email    String @unique
+  schoolId String
+
+  school School
+    @relation(fields:[schoolId], references:[id], onDelete: Cascade)
+
+  name String
+
+  startDate DateTime
+
+  endDate DateTime
+
+  isCurrent Boolean @default(false)
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([schoolId, name])
+
+  @@index([schoolId])
+
+}
+
+//============================================================
+// ACADEMIC SESSION
+//============================================================
+
+model AcademicSession {
+
+  id String @id @default(cuid())
+
+  schoolId String
+
+  school School
+    @relation(fields:[schoolId], references:[id], onDelete: Cascade)
+
+  academicYearId String
+
+  academicYear AcademicYear
+    @relation(fields:[academicYearId], references:[id])
+
+  name String
+
+  startDate DateTime
+
+  endDate DateTime
+
+  isCurrent Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([schoolId])
+
+}
+
+//============================================================
+// HOLIDAY CALENDAR
+//============================================================
+
+model HolidayCalendar {
+
+  id String @id @default(cuid())
+
+  schoolId String
+
+  school School
+    @relation(fields:[schoolId], references:[id], onDelete: Cascade)
+
+  title String
+
+  holidayDate DateTime
+
+  description String?
+
+  isPublicHoliday Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([schoolId])
+
+}
+//============================================================
+// SECTION 04
+// IDENTITY & USER MANAGEMENT
+//============================================================
+//
+// PURPOSE
+// -------
+// Authentication and Login
+//
+// Every person who can log into the system has ONE User account.
+//
+// Examples:
+// Platform Admin
+// School Admin
+// Teacher
+// Principal
+// Driver
+// Accountant
+// Student
+// Parent
+//
+// NOTE
+// ----
+// User stores ONLY authentication information.
+//
+// Employee information is stored separately.
+//
+//============================================================
+
+model User {
+
+  //----------------------------------------------------------
+  // PRIMARY KEY
+  //----------------------------------------------------------
+
+  id String @id @default(cuid())
+
+  //----------------------------------------------------------
+  // SCHOOL
+  //----------------------------------------------------------
+
+  schoolId String?
+
+  school School?
+    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  //----------------------------------------------------------
+  // LOGIN
+  //----------------------------------------------------------
+
+  email String @unique
+
   password String
 
-  firstName String?
-  lastName  String?
+  role UserRole
 
-  phone  String?
-  gender String?
+  //----------------------------------------------------------
+  // PROFILE
+  //----------------------------------------------------------
+
+  firstName String
+
+  lastName String?
+
+  mobile String?
+
+  gender Gender?
 
   profilePhoto String?
 
-  role UserRole @default(SCHOOL_ADMIN)
-
-  schoolId String?
-  school   School? @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-
-  teacher Teacher?
+  //----------------------------------------------------------
+  // ACCOUNT STATUS
+  //----------------------------------------------------------
 
   isActive Boolean @default(true)
 
   emailVerified Boolean @default(false)
-  phoneVerified Boolean @default(false)
+
+  mobileVerified Boolean @default(false)
+
+  //----------------------------------------------------------
+  // SECURITY
+  //----------------------------------------------------------
 
   lastLogin DateTime?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  loginAttempts Int @default(0)
 
-  @@index([schoolId])
-  @@index([schoolId, role])
-  @@index([schoolId, isActive])
-}
+  accountLocked Boolean @default(false)
 
-model Teacher {
-  id String @id @default(cuid())
+  accountLockedUntil DateTime?
 
-  teacherCode String
+  passwordChangedAt DateTime?
 
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  //----------------------------------------------------------
+  // FUTURE FEATURES
+  //----------------------------------------------------------
 
-  schoolId String
-  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  twoFactorEnabled Boolean @default(false)
 
-  designation String?
-  department  String?
+  preferredLanguage String?
 
-  qualification   String?
-  experienceYears Int?
+  theme String?
 
-  employmentType EmploymentType @default(FULL_TIME)
+  //----------------------------------------------------------
+  // RELATIONS
+  //----------------------------------------------------------
 
-  joiningDate DateTime
+  employee Employee?
 
-  dateOfBirth DateTime?
+  student Student?
 
-  bloodGroup String?
+  parent Parent?
 
-  address String?
+  //----------------------------------------------------------
+  // SOFT DELETE
+  //----------------------------------------------------------
 
-  emergencyContact String?
-
-  photo String?
-
-  status TeacherStatus @default(ACTIVE)
-
-  // ===== Soft Delete =====
   isDeleted Boolean @default(false)
 
   deletedAt DateTime?
 
   deletedBy String?
 
-  // =======================
+  //----------------------------------------------------------
+  // AUDIT
+  //----------------------------------------------------------
 
   createdAt DateTime @default(now())
+
   updatedAt DateTime @updatedAt
 
-  @@unique([schoolId, teacherCode])
+  //----------------------------------------------------------
+  // INDEXES
+  //----------------------------------------------------------
+
   @@index([schoolId])
-  @@index([status])
-  @@index([schoolId, status])
+
+  @@index([role])
+
+  @@index([isActive])
+
   @@index([isDeleted])
-  @@index([schoolId, isDeleted])
+
 }
+//============================================================
+// SECTION 05
+// HUMAN RESOURCE (HR) CORE
+//============================================================
+//
+// PURPOSE
+// -------
+// Every staff member is first an Employee.
+//
+// Examples:
+// Teacher
+// Principal
+// Vice Principal
+// Academic Coordinator
+// Accountant
+// Clerk
+// Receptionist
+// Librarian
+// Driver
+// Transport Manager
+// Lab Assistant
+//
+// Specialized modules (Teacher, Driver, etc.) extend Employee.
+//
+//============================================================
+
+
+//============================================================
+// DEPARTMENT
+//============================================================
+
+model Department {
+
+  id String @id @default(cuid())
+
+  schoolId String
+
+  school School
+    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  name String
+
+  code String
+
+  description String?
+
+  isActive Boolean @default(true)
+
+  designations Designation[]
+
+  employees Employee[]
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([schoolId, code])
+
+  @@index([schoolId])
+
+}
+
+
+//============================================================
+// DESIGNATION
+//============================================================
+
+model Designation {
+
+  id String @id @default(cuid())
+
+  schoolId String
+
+  school School
+    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  departmentId String?
+
+  department Department?
+    @relation(fields: [departmentId], references: [id])
+
+  name String
+
+  level Int @default(1)
+
+  description String?
+
+  isActive Boolean @default(true)
+
+  employees Employee[]
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([schoolId, name])
+
+}
+
+
+//============================================================
+// EMPLOYEE
+//============================================================
+
+model Employee {
+
+  //----------------------------------------------------------
+  // PRIMARY KEY
+  //----------------------------------------------------------
+
+  id String @id @default(cuid())
+
+  //----------------------------------------------------------
+  // SCHOOL
+  //----------------------------------------------------------
+
+  schoolId String
+
+  school School
+    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  //----------------------------------------------------------
+  // USER ACCOUNT
+  //----------------------------------------------------------
+
+  userId String @unique
+
+  user User
+    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  //----------------------------------------------------------
+  // BASIC DETAILS
+  //----------------------------------------------------------
+
+  employeeCode String
+
+  firstName String
+
+  lastName String?
+
+  gender Gender?
+
+  dateOfBirth DateTime?
+
+  //----------------------------------------------------------
+  // CONTACT
+  //----------------------------------------------------------
+
+  mobile String?
+
+  email String?
+
+  address String?
+
+  emergencyContact String?
+
+  //----------------------------------------------------------
+  // HR DETAILS
+  //----------------------------------------------------------
+
+  departmentId String?
+
+  department Department?
+    @relation(fields: [departmentId], references: [id])
+
+  designationId String?
+
+  designation Designation?
+    @relation(fields: [designationId], references: [id])
+
+  joiningDate DateTime
+
+  employmentType EmploymentType
+    @default(FULL_TIME)
+
+  status EmployeeStatus
+    @default(ACTIVE)
+
+  //----------------------------------------------------------
+  // PROFESSIONAL
+  //----------------------------------------------------------
+
+  qualification String?
+
+  experienceYears Int?
+
+  bloodGroup String?
+
+  profilePhoto String?
+
+  //----------------------------------------------------------
+  // SPECIALIZED MODULES
+  //----------------------------------------------------------
+
+  teacher Teacher?
+
+  employeeRoles EmployeeRole[]
+
+  //----------------------------------------------------------
+  // SOFT DELETE
+  //----------------------------------------------------------
+
+  isDeleted Boolean @default(false)
+
+  deletedAt DateTime?
+
+  deletedBy String?
+
+  //----------------------------------------------------------
+  // AUDIT
+  //----------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  //----------------------------------------------------------
+  // INDEXES
+  //----------------------------------------------------------
+
+  @@unique([schoolId, employeeCode])
+
+  @@index([schoolId])
+
+  @@index([status])
+
+  @@index([departmentId])
+
+  @@index([designationId])
+
+  @@index([isDeleted])
+
+}
+
+
+//============================================================
+// EMPLOYEE ROLE
+//============================================================
+//
+// Multiple responsibilities can be assigned
+// to one employee.
+//
+// Example:
+//
+// Teacher
+// Academic Coordinator
+// Exam Controller
+// Library Incharge
+//
+//============================================================
+
+model EmployeeRole {
+
+  id String @id @default(cuid())
+
+  employeeId String
+
+  employee Employee
+    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  roleName String
+
+  isPrimary Boolean @default(false)
+
+  startDate DateTime?
+
+  endDate DateTime?
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([employeeId])
+
+}
+//============================================================
+// SECTION 06
+// TEACHER MODULE
+//============================================================
+//
+// PURPOSE
+// -------
+// Stores ONLY teaching-specific information.
+//
+// HR information remains in Employee.
+//
+// Future Extensions
+// -----------------
+// • Subject Allocation
+// • Class Teacher
+// • Timetable
+// • Lesson Planning
+// • Homework
+// • AI Analytics
+//============================================================
+
+
+//============================================================
+// TEACHER
+//============================================================
+
+model Teacher {
+
+  //----------------------------------------------------------
+  // PRIMARY KEY
+  //----------------------------------------------------------
+
+  id String @id @default(cuid())
+
+  //----------------------------------------------------------
+  // EMPLOYEE
+  //----------------------------------------------------------
+
+  employeeId String @unique
+
+  employee Employee
+    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  //----------------------------------------------------------
+  // SCHOOL
+  //----------------------------------------------------------
+
+  schoolId String
+
+  school School
+    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  //----------------------------------------------------------
+  // TEACHER DETAILS
+  //----------------------------------------------------------
+
+  teacherCode String
+
+  employeeNumber String?
+
+  joiningDate DateTime
+
+  teacherStatus TeacherStatus @default(ACTIVE)
+
+  //----------------------------------------------------------
+  // ACADEMIC PROFILE
+  //----------------------------------------------------------
+
+  highestQualification String?
+
+  specialization String?
+
+  university String?
+
+  teachingExperience Int?
+
+  //----------------------------------------------------------
+  // PROFESSIONAL DETAILS
+  //----------------------------------------------------------
+
+  boardRegistrationNo String?
+
+  aadhaarNumber String?
+
+  panNumber String?
+
+  //----------------------------------------------------------
+  // AI FUTURE
+  //----------------------------------------------------------
+
+  aiTeachingScore Float?
+
+  aiPerformanceScore Float?
+
+  //----------------------------------------------------------
+  // FUTURE RELATIONS
+  //----------------------------------------------------------
+
+  teacherSubjects TeacherSubject[]
+
+  classTeachers ClassTeacher[]
+
+  //----------------------------------------------------------
+  // AUDIT
+  //----------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  //----------------------------------------------------------
+  // INDEXES
+  //----------------------------------------------------------
+
+  @@unique([schoolId, teacherCode])
+
+  @@index([schoolId])
+
+  @@index([teacherStatus])
+
+}
+
+
+//============================================================
+// TEACHER SUBJECT
+//============================================================
+//
+// One teacher can teach multiple subjects.
+//
+// Example:
+//
+// Rajesh
+// ├── Physics
+// ├── Mathematics
+// └── Computer Science
+//
+//============================================================
+
+model TeacherSubject {
+
+  id String @id @default(cuid())
+
+  teacherId String
+
+  teacher Teacher
+    @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  subjectName String
+
+  isPrimary Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([teacherId])
+
+}
+
+
+//============================================================
+// CLASS TEACHER
+//============================================================
+//
+// One teacher can become class teacher
+// for one or more classes.
+//
+//============================================================
+
+model ClassTeacher {
+
+  id String @id @default(cuid())
+
+  teacherId String
+
+  teacher Teacher
+    @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  academicYear String
+
+  className String
+
+  section String
+
+  createdAt DateTime @default(now())
+
+  @@index([teacherId])
+
+}
+//============================================================
+// SECTION 07
+// STUDENT MODULE
+//============================================================
+//
+// PURPOSE
+// -------
+// Stores student academic information.
+//
+// LOGIN INFORMATION      -> User
+// PERSONAL INFORMATION   -> Student
+// PARENT INFORMATION     -> Parent
+// ADMISSION HISTORY      -> StudentEnrollment
+//
+// Future Modules
+// --------------
+// • Attendance
+// • Fee
+// • Homework
+// • Examination
+// • Report Card
+// • Transport
+// • Library
+// • Hostel
+// • AI Analytics
+//
+//============================================================
+
+
+//============================================================
+// STUDENT
+//============================================================
+
+model Student {
+
+  //----------------------------------------------------------
+  // PRIMARY KEY
+  //----------------------------------------------------------
+
+  id String @id @default(cuid())
+
+  //----------------------------------------------------------
+  // SCHOOL
+  //----------------------------------------------------------
+
+  schoolId String
+
+  school School
+    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  //----------------------------------------------------------
+  // LOGIN ACCOUNT
+  //----------------------------------------------------------
+
+  userId String? @unique
+
+  user User?
+    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  //----------------------------------------------------------
+  // STUDENT IDENTITY
+  //----------------------------------------------------------
+
+  admissionNo String
+
+  studentCode String?
+
+  rollNo String?
+
+  //----------------------------------------------------------
+  // PERSONAL DETAILS
+  //----------------------------------------------------------
+
+  firstName String
+
+  lastName String?
+
+  gender Gender?
+
+  dateOfBirth DateTime?
+
+  bloodGroup String?
+
+  profilePhoto String?
+
+  //----------------------------------------------------------
+  // CONTACT
+  //----------------------------------------------------------
+
+  mobile String?
+
+  email String?
+
+  address String?
+
+  //----------------------------------------------------------
+  // MEDICAL
+  //----------------------------------------------------------
+
+  medicalConditions String?
+
+  allergies String?
+
+  emergencyContact String?
+
+  //----------------------------------------------------------
+  // STATUS
+  //----------------------------------------------------------
+
+  admissionDate DateTime
+
+  isActive Boolean @default(true)
+
+  isDeleted Boolean @default(false)
+
+  deletedAt DateTime?
+
+  deletedBy String?
+
+  //----------------------------------------------------------
+  // RELATIONS
+  //----------------------------------------------------------
+
+  parents StudentParent[]
+
+  enrollments StudentEnrollment[]
+
+  //----------------------------------------------------------
+  // AUDIT
+  //----------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  //----------------------------------------------------------
+  // INDEXES
+  //----------------------------------------------------------
+
+  @@unique([schoolId, admissionNo])
+
+  @@index([schoolId])
+
+  @@index([isActive])
+
+  @@index([isDeleted])
+
+}
+
+
+
+//============================================================
+// PARENT
+//============================================================
+
+model Parent {
+
+  id String @id @default(cuid())
+
+  //----------------------------------------------------------
+
+  schoolId String
+
+  school School
+    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  //----------------------------------------------------------
+  // LOGIN
+  //----------------------------------------------------------
+
+  userId String? @unique
+
+  user User?
+    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  //----------------------------------------------------------
+  // DETAILS
+  //----------------------------------------------------------
+
+  fatherName String?
+
+  motherName String?
+
+  guardianName String?
+
+  mobile String?
+
+  alternateMobile String?
+
+  email String?
+
+  occupation String?
+
+  annualIncome Float?
+
+  address String?
+
+  //----------------------------------------------------------
+
+  students StudentParent[]
+
+  //----------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([schoolId])
+
+}
+
+
+
+//============================================================
+// STUDENT PARENT
+//============================================================
+//
+// Many-to-Many Relationship
+//
+// One parent can have multiple children.
+// One student can have multiple guardians.
+//
+//============================================================
+
+model StudentParent {
+
+  id String @id @default(cuid())
+
+  studentId String
+
+  parentId String
+
+  relation String
+
+  isPrimary Boolean @default(false)
+
+  //----------------------------------------------------------
+
+  student Student
+    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  parent Parent
+    @relation(fields: [parentId], references: [id], onDelete: Cascade)
+
+  //----------------------------------------------------------
+
+  @@unique([studentId, parentId])
+
+}
+
+
+
+//============================================================
+// STUDENT ENROLLMENT
+//============================================================
+//
+// Keeps complete academic history.
+//
+// Example
+//
+// 2026-27  → Class 5 → Section A
+//
+// 2027-28  → Class 6 → Section A
+//
+// Nothing is overwritten.
+//
+//============================================================
+
+model StudentEnrollment {
+
+  id String @id @default(cuid())
+
+  //----------------------------------------------------------
+
+  studentId String
+
+  student Student
+    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  //----------------------------------------------------------
+
+  academicYearId String
+
+  academicYear AcademicYear
+    @relation(fields: [academicYearId], references: [id])
+
+  //----------------------------------------------------------
+  // NEW RELATIONS
+  //----------------------------------------------------------
+
+  classId String
+
+  academicClass AcademicClass
+    @relation(fields: [classId], references: [id])
+
+  sectionId String?
+
+  academicSection AcademicSection?
+    @relation(fields: [sectionId], references: [id])
+
+  //----------------------------------------------------------
+
+  rollNo String?
+
+  houseId String?
+
+  //----------------------------------------------------------
+
+  isCurrent Boolean @default(true)
+
+  promoted Boolean @default(false)
+
+  //----------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  //----------------------------------------------------------
+
+  @@unique([studentId, academicYearId])
+
+  @@index([academicYearId])
+
+  @@index([classId])
+
+  @@index([sectionId])
+
+}
+//============================================================
+// SECTION 08
+// ACADEMIC STRUCTURE MODULE
+//============================================================
+//
+// PURPOSE
+// -------
+// Defines the complete academic structure of a school.
+//
+// This module controls:
+//
+// • Academic Years
+// • Classes
+// • Sections
+// • Subjects
+// • Class-wise Subjects
+// • Class Teachers
+// • Subject Teachers
+// • Houses
+//
+// Future Extensions
+// -----------------
+// ✔ Timetable
+// ✔ Attendance
+// ✔ Homework
+// ✔ Examination
+// ✔ Promotion
+// ✔ Report Cards
+// ✔ AI Timetable Generator
+//
+//============================================================
+
+
+
+//============================================================
+// ACADEMIC CLASS
+//============================================================
+//
+// Examples
+//
+// Nursery
+// LKG
+// UKG
+// Class 1
+// Class 2
+// ...
+// Class 12
+//
+//============================================================
+
+model AcademicClass {
+
+  //----------------------------------------------------------
+  // PRIMARY KEY
+  //----------------------------------------------------------
+
+  id String @id @default(cuid())
+
+  //----------------------------------------------------------
+  // SCHOOL
+  //----------------------------------------------------------
+
+  schoolId String
+
+  school School
+    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  //----------------------------------------------------------
+  // CLASS DETAILS
+  //----------------------------------------------------------
+
+  className String
+
+  classCode String
+
+  displayOrder Int
+
+  description String?
+
+  isActive Boolean @default(true)
+
+  //----------------------------------------------------------
+  // RELATIONS
+  //----------------------------------------------------------
+
+  sections AcademicSection[]
+
+  classSubjects ClassSubject[]
+
+  subjectTeachers SubjectTeacher[]
+
+  classTeachers ClassTeacher[]
+
+  enrollments StudentEnrollment[]
+
+  //----------------------------------------------------------
+  // AUDIT
+  //----------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  //----------------------------------------------------------
+  // INDEXES
+  //----------------------------------------------------------
+
+  @@unique([schoolId, classCode])
+
+  @@index([schoolId])
+
+}
+
+
+
+//============================================================
+// ACADEMIC SECTION
+//============================================================
+//
+// Examples
+//
+// A
+// B
+// C
+//
+//============================================================
+
+model AcademicSection {
+
+  id String @id @default(cuid())
+
+  //----------------------------------------------------------
+
+  schoolId String
+
+  school School
+    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  //----------------------------------------------------------
+
+  classId String
+
+  academicClass AcademicClass
+    @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  //----------------------------------------------------------
+
+  sectionName String
+
+  roomNumber String?
+
+  capacity Int?
+
+  isActive Boolean @default(true)
+
+  //----------------------------------------------------------
+
+  enrollments StudentEnrollment[]
+
+  classTeachers ClassTeacher[]
+
+  subjectTeachers SubjectTeacher[]
+
+  //----------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  //----------------------------------------------------------
+
+  @@unique([classId, sectionName])
+
+  @@index([schoolId])
+
+}
+
+
+
+//============================================================
+// SUBJECT
+//============================================================
+
+model Subject {
+
+  id String @id @default(cuid())
+
+  //----------------------------------------------------------
+
+  schoolId String
+
+  school School
+    @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+
+  //----------------------------------------------------------
+
+  subjectName String
+
+  subjectCode String
+
+  shortName String?
+
+  description String?
+
+  isOptional Boolean @default(false)
+
+  isPractical Boolean @default(false)
+
+  isActive Boolean @default(true)
+
+  //----------------------------------------------------------
+
+  classSubjects ClassSubject[]
+
+  subjectTeachers SubjectTeacher[]
+
+  //----------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  //----------------------------------------------------------
+
+  @@unique([schoolId, subjectCode])
+
+}
+
+
+
+//============================================================
+// CLASS SUBJECT
+//============================================================
+//
+// Which subjects belong to which class.
+//
+// Example
+//
+// Class 8
+//
+// Mathematics
+// English
+// Science
+//
+//============================================================
+
+model ClassSubject {
+
+  id String @id @default(cuid())
+
+  //----------------------------------------------------------
+
+  classId String
+
+  academicClass AcademicClass
+    @relation(fields:[classId], references:[id], onDelete:Cascade)
+
+  //----------------------------------------------------------
+
+  subjectId String
+
+  subject Subject
+    @relation(fields:[subjectId], references:[id], onDelete:Cascade)
+
+  //----------------------------------------------------------
+
+  isCompulsory Boolean @default(true)
+
+  weeklyPeriods Int?
+
+  maximumMarks Float?
+
+  passingMarks Float?
+
+  //----------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  //----------------------------------------------------------
+
+  @@unique([classId, subjectId])
+
+}
+
+
+
+//============================================================
+// SUBJECT TEACHER
+//============================================================
+//
+// Which teacher teaches which subject
+// in which class and section.
+//
+//============================================================
+
+model SubjectTeacher {
+
+  id String @id @default(cuid())
+
+  //----------------------------------------------------------
+
+  schoolId String
+
+  //----------------------------------------------------------
+
+  teacherId String
+
+  teacher Teacher
+    @relation(fields:[teacherId], references:[id])
+
+  //----------------------------------------------------------
+
+  subjectId String
+
+  subject Subject
+    @relation(fields:[subjectId], references:[id])
+
+  //----------------------------------------------------------
+
+  classId String
+
+  academicClass AcademicClass
+    @relation(fields:[classId], references:[id])
+
+  //----------------------------------------------------------
+
+  sectionId String?
+
+  academicSection AcademicSection?
+    @relation(fields:[sectionId], references:[id])
+
+  //----------------------------------------------------------
+
+  academicYearId String
+
+  academicYear AcademicYear
+    @relation(fields:[academicYearId], references:[id])
+
+  //----------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+//============================================================
+// CLASS TEACHER
+//============================================================
+//
+// One class teacher for one section
+// in one academic year.
+//
+//============================================================
+
+model ClassTeacher {
+
+  id String @id @default(cuid())
+
+  //----------------------------------------------------------
+
+  teacherId String
+
+  teacher Teacher
+    @relation(fields:[teacherId], references:[id])
+
+  //----------------------------------------------------------
+
+  classId String
+
+  academicClass AcademicClass
+    @relation(fields:[classId], references:[id])
+
+  //----------------------------------------------------------
+
+  sectionId String
+
+  academicSection AcademicSection
+    @relation(fields:[sectionId], references:[id])
+
+  //----------------------------------------------------------
+
+  academicYearId String
+
+  academicYear AcademicYear
+    @relation(fields:[academicYearId], references:[id])
+
+  //----------------------------------------------------------
+
+  isActive Boolean @default(true)
+
+  //----------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+//============================================================
+// HOUSE
+//============================================================
+//
+// Examples
+//
+// Red
+// Blue
+// Green
+// Yellow
+//
+// Future
+//
+// Sports
+// Cultural
+// Discipline
+//
+//============================================================
+
+model House {
+
+  id String @id @default(cuid())
+
+  //----------------------------------------------------------
+
+  schoolId String
+
+  school School
+    @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+
+  //----------------------------------------------------------
+
+  houseName String
+
+  houseCode String
+
+  colorCode String?
+
+  motto String?
+
+  houseCaptain String?
+
+  viceCaptain String?
+
+  isActive Boolean @default(true)
+
+  //----------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  //----------------------------------------------------------
+
+  @@unique([schoolId, houseCode])
+
+}
+//============================================================
+// SECTION 09
+// TIMETABLE & SCHEDULING MODULE
+//============================================================
+//
+// PURPOSE
+// -------
+// Defines timetable structure.
+//
+// Controls:
+//
+// • Working Days
+// • School Periods
+// • Class Timetable
+// • Teacher Timetable
+// • Room Allocation
+//
+// Future Features
+// ---------------
+// ✔ AI Timetable Generator
+// ✔ Conflict Detection
+// ✔ Substitute Teacher
+// ✔ Smart Rescheduling
+// ✔ Holiday Adjustments
+//
+//============================================================
+
+
+
+//============================================================
+// WORKING DAY
+//============================================================
+
+model WorkingDay {
+
+  id String @id @default(cuid())
+
+  schoolId String
+
+  school School
+    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  dayName String
+
+  dayNumber Int
+
+  isWorking Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([schoolId, dayNumber])
+
+}
+
+
+
+//============================================================
+// SCHOOL PERIOD
+//============================================================
+
+model SchoolPeriod {
+
+  id String @id @default(cuid())
+
+  schoolId String
+
+  school School
+    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  periodNumber Int
+
+  periodName String
+
+  startTime String
+
+  endTime String
+
+  isBreak Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([schoolId, periodNumber])
+
+}
+
+
+
+//============================================================
+// CLASS TIMETABLE
+//============================================================
+
+model ClassTimetable {
+
+  id String @id @default(cuid())
+
+  schoolId String
+
+  school School
+    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  academicYearId String
+
+  academicYear AcademicYear
+    @relation(fields: [academicYearId], references: [id])
+
+  classId String
+
+  academicClass AcademicClass
+    @relation(fields: [classId], references: [id])
+
+  sectionId String?
+
+  academicSection AcademicSection?
+    @relation(fields: [sectionId], references: [id])
+
+  workingDayId String
+
+  workingDay WorkingDay
+    @relation(fields: [workingDayId], references: [id])
+
+  periodId String
+
+  period SchoolPeriod
+    @relation(fields: [periodId], references: [id])
+
+  subjectTeacherId String
+
+  subjectTeacher SubjectTeacher
+    @relation(fields: [subjectTeacherId], references: [id])
+
+  roomNumber String?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([schoolId])
+
+  @@index([classId])
+
+  @@index([sectionId])
+
+}//============================================================
+// SECTION 10
+// ATTENDANCE MODULE
+//============================================================
+//
+// PURPOSE
+// -------
+// Central attendance management.
+//
+// Supports:
+//
+// ✓ Daily Attendance
+// ✓ Period Attendance
+// ✓ Teacher Attendance
+// ✓ Employee Attendance
+// ✓ QR Attendance
+// ✓ RFID
+// ✓ Face Recognition
+// ✓ GPS Attendance
+// ✓ AI Attendance Analysis
+//
+//============================================================
+
+
+
+//============================================================
+// ATTENDANCE STATUS
+//============================================================
+
+enum AttendanceStatus {
+
+  PRESENT
+
+  ABSENT
+
+  LATE
+
+  HALF_DAY
+
+  LEAVE
+
+  HOLIDAY
+
+}
+
+
+
+//============================================================
+// STUDENT DAILY ATTENDANCE
+//============================================================
+
+model StudentAttendance {
+
+  //----------------------------------------------------------
+
+  id String @id @default(cuid())
+
+  //----------------------------------------------------------
+  // SCHOOL
+  //----------------------------------------------------------
+
+  schoolId String
+
+  school School
+    @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+
+  //----------------------------------------------------------
+  // STUDENT
+  //----------------------------------------------------------
+
+  studentId String
+
+  student Student
+    @relation(fields:[studentId], references:[id], onDelete:Cascade)
+
+  //----------------------------------------------------------
+  // ENROLLMENT
+  //----------------------------------------------------------
+
+  enrollmentId String
+
+  enrollment StudentEnrollment
+    @relation(fields:[enrollmentId], references:[id])
+
+  //----------------------------------------------------------
+  // DATE
+  //----------------------------------------------------------
+
+  attendanceDate DateTime
+
+  //----------------------------------------------------------
+
+  status AttendanceStatus
+
+  //----------------------------------------------------------
+
+  checkInTime DateTime?
+
+  checkOutTime DateTime?
+
+  //----------------------------------------------------------
+
+  remarks String?
+
+  //----------------------------------------------------------
+  // WHO MARKED
+  //----------------------------------------------------------
+
+  markedByEmployeeId String?
+
+  //----------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  //----------------------------------------------------------
+
+  @@unique([studentId, attendanceDate])
+
+  @@index([attendanceDate])
+
+}
+
+
+
+//============================================================
+// PERIOD ATTENDANCE
+//============================================================
+
+model StudentPeriodAttendance {
+
+  id String @id @default(cuid())
+
+  //----------------------------------------------------------
+
+  timetableId String
+
+  timetable ClassTimetable
+    @relation(fields:[timetableId], references:[id])
+
+  //----------------------------------------------------------
+
+  studentId String
+
+  student Student
+    @relation(fields:[studentId], references:[id])
+
+  //----------------------------------------------------------
+
+  attendanceDate DateTime
+
+  //----------------------------------------------------------
+
+  status AttendanceStatus
+
+  //----------------------------------------------------------
+
+  remarks String?
+
+  //----------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+}
+
+
+
+//============================================================
+// EMPLOYEE ATTENDANCE
+//============================================================
+
+model EmployeeAttendance {
+
+  id String @id @default(cuid())
+
+  //----------------------------------------------------------
+
+  employeeId String
+
+  employee Employee
+    @relation(fields:[employeeId], references:[id])
+
+  //----------------------------------------------------------
+
+  attendanceDate DateTime
+
+  //----------------------------------------------------------
+
+  status AttendanceStatus
+
+  //----------------------------------------------------------
+
+  checkInTime DateTime?
+
+  checkOutTime DateTime?
+
+  //----------------------------------------------------------
+
+  workingHours Float?
+
+  overtimeHours Float?
+
+  //----------------------------------------------------------
+
+  remarks String?
+
+  //----------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+//============================================================
+// ATTENDANCE DEVICE LOG
+//============================================================
+//
+// Future:
+//
+// QR
+// RFID
+// Face
+// GPS
+// Biometric
+//
+//============================================================
+
+model AttendanceDeviceLog {
+
+  id String @id @default(cuid())
+
+  schoolId String
+
+  //----------------------------------------------------------
+
+  employeeId String?
+
+  studentId String?
+
+  //----------------------------------------------------------
+
+  deviceType String
+
+  //----------------------------------------------------------
+
+  eventTime DateTime
+
+  //----------------------------------------------------------
+
+  latitude Float?
+
+  longitude Float?
+
+  //----------------------------------------------------------
+
+  deviceId String?
+
+  //----------------------------------------------------------
+
+  rawData String?
+
+  //----------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+}
+//============================================================
+// SECTION 11
+// EXAMINATION MANAGEMENT MODULE
+//============================================================
+//
+// PURPOSE
+// -------
+// Complete examination management.
+//
+// Supports:
+//
+// ✓ Unit Tests
+// ✓ Mid Term
+// ✓ Final Exams
+// ✓ Practical Exams
+// ✓ Viva
+// ✓ Internal Assessment
+// ✓ AI Performance Analytics
+//
+//============================================================
+
+
+
+//============================================================
+// EXAM
+//============================================================
+
+model Exam {
+
+  id String @id @default(cuid())
+
+  //----------------------------------------------------------
+
+  schoolId String
+
+  school School
+    @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+
+  //----------------------------------------------------------
+
+  academicYearId String
+
+  academicYear AcademicYear
+    @relation(fields:[academicYearId], references:[id])
+
+  //----------------------------------------------------------
+
+  examName String
+
+  examCode String
+
+  description String?
+
+  startDate DateTime
+
+  endDate DateTime
+
+  isPublished Boolean @default(false)
+
+  //----------------------------------------------------------
+
+  schedules ExamSchedule[]
+
+  results StudentResult[]
+
+  //----------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([schoolId, examCode])
+
+}
+
+
+
+//============================================================
+// EXAM SCHEDULE
+//============================================================
+
+model ExamSchedule {
+
+  id String @id @default(cuid())
+
+  //----------------------------------------------------------
+
+  examId String
+
+  exam Exam
+    @relation(fields:[examId], references:[id], onDelete:Cascade)
+
+  //----------------------------------------------------------
+
+  classId String
+
+  academicClass AcademicClass
+    @relation(fields:[classId], references:[id])
+
+  //----------------------------------------------------------
+
+  sectionId String?
+
+  academicSection AcademicSection?
+    @relation(fields:[sectionId], references:[id])
+
+  //----------------------------------------------------------
+
+  subjectId String
+
+  subject Subject
+    @relation(fields:[subjectId], references:[id])
+
+  //----------------------------------------------------------
+
+  examDate DateTime
+
+  startTime String
+
+  endTime String
+
+  roomNumber String?
+
+  maximumMarks Float
+
+  passingMarks Float
+
+  //----------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+}
+
+
+
+//============================================================
+// STUDENT RESULT
+//============================================================
+
+model StudentResult {
+
+  id String @id @default(cuid())
+
+  //----------------------------------------------------------
+
+  examId String
+
+  exam Exam
+    @relation(fields:[examId], references:[id])
+
+  //----------------------------------------------------------
+
+  studentId String
+
+  student Student
+    @relation(fields:[studentId], references:[id])
+
+  //----------------------------------------------------------
+
+  subjectId String
+
+  subject Subject
+    @relation(fields:[subjectId], references:[id])
+
+  //----------------------------------------------------------
+
+  marksObtained Float
+
+  maximumMarks Float
+
+  grade String?
+
+  remarks String?
+
+  isAbsent Boolean @default(false)
+
+  //----------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([examId, studentId, subjectId])
+
+}
+
+
+
+//============================================================
+// REPORT CARD
+//============================================================
+
+model ReportCard {
+
+  id String @id @default(cuid())
+
+  //----------------------------------------------------------
+
+  examId String
+
+  exam Exam
+    @relation(fields:[examId], references:[id])
+
+  //----------------------------------------------------------
+
+  studentId String
+
+  student Student
+    @relation(fields:[studentId], references:[id])
+
+  //----------------------------------------------------------
+
+  totalMarks Float
+
+  obtainedMarks Float
+
+  percentage Float
+
+  grade String
+
+  rank Int?
+
+  teacherRemarks String?
+
+  principalRemarks String?
+
+  published Boolean @default(false)
+
+  //----------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([examId, studentId])
+
+}
+//============================================================
+// SECTION 12
+// FEE MANAGEMENT MODULE
+//============================================================
+//
+// PURPOSE
+// -------
+// Complete fee management.
+//
+// Supports:
+//
+// ✓ Admission Fee
+// ✓ Tuition Fee
+// ✓ Annual Fee
+// ✓ Transport Fee
+// ✓ Hostel Fee
+// ✓ Examination Fee
+// ✓ Fine
+// ✓ Discount
+// ✓ Scholarship
+// ✓ Online Payment
+// ✓ Offline Payment
+//
+//============================================================
+
+
+
+//============================================================
+// FEE HEAD
+//============================================================
+
+model FeeHead {
+
+  id String @id @default(cuid())
+
+  //----------------------------------------------------------
+
+  schoolId String
+
+  school School
+    @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+
+  //----------------------------------------------------------
+
+  feeHeadName String
+
+  feeHeadCode String
+
+  description String?
+
+  isRecurring Boolean @default(true)
+
+  isActive Boolean @default(true)
+
+  //----------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([schoolId, feeHeadCode])
+
+}
+
+
+
+//============================================================
+// FEE STRUCTURE
+//============================================================
+
+model FeeStructure {
+
+  id String @id @default(cuid())
+
+  //----------------------------------------------------------
+
+  schoolId String
+
+  school School
+    @relation(fields:[schoolId], references:[id])
+
+  //----------------------------------------------------------
+
+  academicYearId String
+
+  academicYear AcademicYear
+    @relation(fields:[academicYearId], references:[id])
+
+  //----------------------------------------------------------
+
+  classId String
+
+  academicClass AcademicClass
+    @relation(fields:[classId], references:[id])
+
+  //----------------------------------------------------------
+
+  feeHeadId String
+
+  feeHead FeeHead
+    @relation(fields:[feeHeadId], references:[id])
+
+  //----------------------------------------------------------
+
+  amount Float
+
+  dueMonth Int?
+
+  createdAt DateTime @default(now())
+
+}
+
+
+
+//============================================================
+// STUDENT FEE
+//============================================================
+
+model StudentFee {
+
+  id String @id @default(cuid())
+
+  //----------------------------------------------------------
+
+  studentId String
+
+  student Student
+    @relation(fields:[studentId], references:[id])
+
+  //----------------------------------------------------------
+
+  feeStructureId String
+
+  feeStructure FeeStructure
+    @relation(fields:[feeStructureId], references:[id])
+
+  //----------------------------------------------------------
+
+  totalAmount Float
+
+  discount Float @default(0)
+
+  fine Float @default(0)
+
+  payableAmount Float
+
+  paidAmount Float @default(0)
+
+  balanceAmount Float
+
+  dueDate DateTime
+
+  status String
+
+  //----------------------------------------------------------
+
+  payments FeePayment[]
+
+  //----------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+}
+
+
+
+//============================================================
+// FEE PAYMENT
+//============================================================
+
+model FeePayment {
+
+  id String @id @default(cuid())
+
+  //----------------------------------------------------------
+
+  studentFeeId String
+
+  studentFee StudentFee
+    @relation(fields:[studentFeeId], references:[id])
+
+  //----------------------------------------------------------
+
+  receiptNo String
+
+  paymentDate DateTime
+
+  amount Float
+
+  paymentMode String
+
+  transactionId String?
+
+  remarks String?
+
+  //----------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+}
+//============================================================
+// SECTION 13
+// HOMEWORK & ASSIGNMENT MANAGEMENT
+//============================================================
+//
+// PURPOSE
+// -------
+// Digital Learning Management System
+//
+// Supports:
+//
+// ✓ Homework
+// ✓ Assignments
+// ✓ Classwork
+// ✓ Notes
+// ✓ Study Material
+// ✓ File Upload
+// ✓ PDF
+// ✓ Images
+// ✓ Videos
+// ✓ AI Homework Evaluation (Future)
+// ✓ Student Doubt Module (Future)
+//
+//============================================================
+
+
+
+//============================================================
+// HOMEWORK
+//============================================================
+
+model Homework {
+
+  id String @id @default(cuid())
+
+  //----------------------------------------------------------
+  // SCHOOL
+  //----------------------------------------------------------
+
+  schoolId String
+
+  school School
+    @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+
+  //----------------------------------------------------------
+  // ACADEMIC YEAR
+  //----------------------------------------------------------
+
+  academicYearId String
+
+  academicYear AcademicYear
+    @relation(fields:[academicYearId], references:[id])
+
+  //----------------------------------------------------------
+  // CLASS
+  //----------------------------------------------------------
+
+  classId String
+
+  academicClass AcademicClass
+    @relation(fields:[classId], references:[id])
+
+  //----------------------------------------------------------
+  // SECTION
+  //----------------------------------------------------------
+
+  sectionId String?
+
+  academicSection AcademicSection?
+    @relation(fields:[sectionId], references:[id])
+
+  //----------------------------------------------------------
+  // SUBJECT
+  //----------------------------------------------------------
+
+  subjectId String
+
+  subject Subject
+    @relation(fields:[subjectId], references:[id])
+
+  //----------------------------------------------------------
+  // TEACHER
+  //----------------------------------------------------------
+
+  teacherId String
+
+  teacher Teacher
+    @relation(fields:[teacherId], references:[id])
+
+  //----------------------------------------------------------
+  // DETAILS
+  //----------------------------------------------------------
+
+  title String
+
+  description String
+
+  homeworkDate DateTime
+
+  submissionDate DateTime
+
+  maximumMarks Float?
+
+  attachmentUrl String?
+
+  isPublished Boolean @default(true)
+
+  //----------------------------------------------------------
+
+  submissions HomeworkSubmission[]
+
+  //----------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+//============================================================
+// HOMEWORK SUBMISSION
+//============================================================
+
+model HomeworkSubmission {
+
+  id String @id @default(cuid())
+
+  //----------------------------------------------------------
+
+  homeworkId String
+
+  homework Homework
+    @relation(fields:[homeworkId], references:[id], onDelete:Cascade)
+
+  //----------------------------------------------------------
+
+  studentId String
+
+  student Student
+    @relation(fields:[studentId], references:[id])
+
+  //----------------------------------------------------------
+
+  submissionDate DateTime?
+
+  attachmentUrl String?
+
+  remarks String?
+
+  marksObtained Float?
+
+  isChecked Boolean @default(false)
+
+  //----------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+//============================================================
+// STUDY MATERIAL
+//============================================================
+
+model StudyMaterial {
+
+  id String @id @default(cuid())
+
+  //----------------------------------------------------------
+
+  schoolId String
+
+  school School
+    @relation(fields:[schoolId], references:[id])
+
+  //----------------------------------------------------------
+
+  classId String
+
+  academicClass AcademicClass
+    @relation(fields:[classId], references:[id])
+
+  //----------------------------------------------------------
+
+  sectionId String?
+
+  academicSection AcademicSection?
+    @relation(fields:[sectionId], references:[id])
+
+  //----------------------------------------------------------
+
+  subjectId String
+
+  subject Subject
+    @relation(fields:[subjectId], references:[id])
+
+  //----------------------------------------------------------
+
+  teacherId String
+
+  teacher Teacher
+    @relation(fields:[teacherId], references:[id])
+
+  //----------------------------------------------------------
+
+  title String
+
+  description String?
+
+  fileUrl String?
+
+  youtubeLink String?
+
+  materialType String
+
+  //----------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+//============================================================
+// SECTION 14
+// NOTIFICATION & COMMUNICATION MODULE
+//============================================================
+//
+// PURPOSE
+// -------
+// Central communication hub.
+//
+// Supports:
+//
+// ✓ App Notifications
+// ✓ SMS
+// ✓ Email
+// ✓ WhatsApp
+// ✓ Circulars
+// ✓ Announcements
+// ✓ Event Notifications
+// ✓ Emergency Alerts
+// ✓ AI Smart Notifications (Future)
+//
+//============================================================
+
+
+
+//============================================================
+// NOTIFICATION
+//============================================================
+
+model Notification {
+
+  //----------------------------------------------------------
+
+  id String @id @default(cuid())
+
+  //----------------------------------------------------------
+
+  schoolId String
+
+  school School
+      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+
+  //----------------------------------------------------------
+
+  title String
+
+  message String
+
+  notificationType String
+
+  priority String @default("NORMAL")
+
+  //----------------------------------------------------------
+
+  sendToStudents Boolean @default(false)
+
+  sendToParents Boolean @default(false)
+
+  sendToTeachers Boolean @default(false)
+
+  sendToEmployees Boolean @default(false)
+
+  //----------------------------------------------------------
+
+  publishDate DateTime
+
+  expiryDate DateTime?
+
+  //----------------------------------------------------------
+
+  attachmentUrl String?
+
+  //----------------------------------------------------------
+
+  isPublished Boolean @default(false)
+
+  //----------------------------------------------------------
+
+  deliveries NotificationDelivery[]
+
+  //----------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+//============================================================
+// NOTIFICATION DELIVERY
+//============================================================
+
+model NotificationDelivery {
+
+  id String @id @default(cuid())
+
+  //----------------------------------------------------------
+
+  notificationId String
+
+  notification Notification
+      @relation(fields:[notificationId], references:[id], onDelete:Cascade)
+
+  //----------------------------------------------------------
+
+  userId String?
+
+  user User?
+      @relation(fields:[userId], references:[id])
+
+  //----------------------------------------------------------
+
+  deliveryMode String
+
+  //----------------------------------------------------------
+
+  delivered Boolean @default(false)
+
+  deliveredAt DateTime?
+
+  //----------------------------------------------------------
+
+  isRead Boolean @default(false)
+
+  readAt DateTime?
+
+  //----------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+}
+
+
+
+//============================================================
+// ANNOUNCEMENT
+//============================================================
+
+model Announcement {
+
+  id String @id @default(cuid())
+
+  //----------------------------------------------------------
+
+  schoolId String
+
+  school School
+      @relation(fields:[schoolId], references:[id])
+
+  //----------------------------------------------------------
+
+  title String
+
+  description String
+
+  //----------------------------------------------------------
+
+  startDate DateTime
+
+  endDate DateTime?
+
+  //----------------------------------------------------------
+
+  attachmentUrl String?
+
+  //----------------------------------------------------------
+
+  createdByEmployeeId String?
+
+  //----------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+//============================================================
+// MESSAGE
+//============================================================
+//
+// Internal Messaging
+//
+// Future:
+//
+// Student ↔ Teacher
+//
+// Parent ↔ Teacher
+//
+// Principal ↔ Staff
+//
+// AI Assistant
+//
+//============================================================
+
+model Message {
+
+  id String @id @default(cuid())
+
+  //----------------------------------------------------------
+
+  schoolId String
+
+  school School
+      @relation(fields:[schoolId], references:[id])
+
+  //----------------------------------------------------------
+
+  senderUserId String
+
+  receiverUserId String
+
+  //----------------------------------------------------------
+
+  subject String?
+
+  message String
+
+  //----------------------------------------------------------
+
+  attachmentUrl String?
+
+  //----------------------------------------------------------
+
+  isRead Boolean @default(false)
+
+  readAt DateTime?
+
+  //----------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+}
+//============================================================
+// SECTION 15
+// LIBRARY MANAGEMENT MODULE
+//============================================================
+//
+// PURPOSE
+// -------
+// Complete Library Automation.
+//
+// Supports:
+//
+// ✓ Book Categories
+// ✓ Book Inventory
+// ✓ Issue Books
+// ✓ Return Books
+// ✓ Fine Calculation
+// ✓ Barcode
+// ✓ QR Code
+// ✓ RFID (Future)
+// ✓ Digital Library (Future)
+//
+//============================================================
+
+
+
+//============================================================
+// BOOK CATEGORY
+//============================================================
+
+model BookCategory {
+
+  id String @id @default(cuid())
+
+  schoolId String
+
+  school School
+      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+
+  categoryName String
+
+  categoryCode String
+
+  description String?
+
+  isActive Boolean @default(true)
+
+  books Book[]
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([schoolId, categoryCode])
+
+}
+
+
+
+//============================================================
+// BOOK
+//============================================================
+
+model Book {
+
+  id String @id @default(cuid())
+
+  schoolId String
+
+  school School
+      @relation(fields:[schoolId], references:[id])
+
+  categoryId String
+
+  category BookCategory
+      @relation(fields:[categoryId], references:[id])
+
+  title String
+
+  author String?
+
+  publisher String?
+
+  isbn String?
+
+  edition String?
+
+  language String?
+
+  totalCopies Int
+
+  availableCopies Int
+
+  shelfNo String?
+
+  barcode String?
+
+  qrCode String?
+
+  isActive Boolean @default(true)
+
+  issues BookIssue[]
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+//============================================================
+// BOOK ISSUE
+//============================================================
+
+model BookIssue {
+
+  id String @id @default(cuid())
+
+  schoolId String
+
+  school School
+      @relation(fields:[schoolId], references:[id])
+
+  bookId String
+
+  book Book
+      @relation(fields:[bookId], references:[id])
+
+  studentId String?
+
+  student Student?
+      @relation(fields:[studentId], references:[id])
+
+  employeeId String?
+
+  employee Employee?
+      @relation(fields:[employeeId], references:[id])
+
+  issueDate DateTime
+
+  dueDate DateTime
+
+  returnDate DateTime?
+
+  fineAmount Float @default(0)
+
+  remarks String?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}//=====================================================================
+// SECTION 16
+// STUDENT FINANCIAL LEDGER (ERP FINANCIAL CORE)
+//=====================================================================
+//
+// PURPOSE
+// --------------------------------------------------------------------
+// This is the CENTRAL FINANCIAL ENGINE of the ERP.
+//
+// Every monetary transaction related to a student will flow here.
+//
+// Integrated Modules:
+//
+// ✓ Admission
+// ✓ Fee Management
+// ✓ School Store
+// ✓ Library Fine
+// ✓ Transport
+// ✓ Hostel
+// ✓ Examination
+// ✓ Scholarship
+// ✓ Discounts
+// ✓ Refunds
+// ✓ Miscellaneous Charges
+//
+// Future:
+//
+// ✓ Online Payment Gateway
+// ✓ Wallet
+// ✓ EMI
+// ✓ Auto Reminder
+// ✓ AI Financial Prediction
+//
+// NOTE
+// --------------------------------------------------------------------
+// No module should directly maintain a student's outstanding balance.
+// Every financial module must create transactions in this ledger.
+//
+//=====================================================================
+
+
+
+//=====================================================================
+// TRANSACTION TYPE
+//=====================================================================
+
+enum LedgerTransactionType {
+
+  // Academic
+
+  ADMISSION_FEE
+
+  TUITION_FEE
+
+  EXAMINATION_FEE
+
+  ANNUAL_FEE
+
+  DEVELOPMENT_FEE
+
+  ACTIVITY_FEE
+
+  // Support Services
+
+  TRANSPORT_FEE
+
+  HOSTEL_FEE
+
+  LIBRARY_FINE
+
+  STORE_PURCHASE
+
+  // Financial
+
+  PAYMENT_RECEIVED
+
+  REFUND
+
+  SCHOLARSHIP
+
+  DISCOUNT
+
+  FINE
+
+  OTHER
+
+}
+
+
+
+//=====================================================================
+// PAYMENT MODE
+//=====================================================================
+
+enum PaymentMode {
+
+  CASH
+
+  CHEQUE
+
+  BANK_TRANSFER
+
+  UPI
+
+  CARD
+
+  NET_BANKING
+
+  ONLINE_GATEWAY
+
+}
+
+
+
+//=====================================================================
+// STUDENT LEDGER
+//=====================================================================
+
+model StudentLedger {
+
+  //------------------------------------------------------------------
+
+  id String @id @default(cuid())
+
+  //------------------------------------------------------------------
+  // SCHOOL
+  //------------------------------------------------------------------
+
+  schoolId String
+
+  school School
+      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  //------------------------------------------------------------------
+  // STUDENT
+  //------------------------------------------------------------------
+
+  studentId String
+
+  student Student
+      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  //------------------------------------------------------------------
+  // ACADEMIC YEAR
+  //------------------------------------------------------------------
+
+  academicYearId String
+
+  academicYear AcademicYear
+      @relation(fields: [academicYearId], references: [id])
+
+  //------------------------------------------------------------------
+  // TRANSACTION
+  //------------------------------------------------------------------
+
+  transactionType LedgerTransactionType
+
+  //------------------------------------------------------------------
+
+  transactionDate DateTime
+
+  //------------------------------------------------------------------
+  // DESCRIPTION
+  //------------------------------------------------------------------
+
+  description String?
+
+  //------------------------------------------------------------------
+  // AMOUNT
+  //------------------------------------------------------------------
+
+  debitAmount Decimal @default(0.00)
+
+  creditAmount Decimal @default(0.00)
+
+  //------------------------------------------------------------------
+  // PAYMENT
+  //------------------------------------------------------------------
+
+  paymentMode PaymentMode?
+
+  receiptNumber String?
+
+  invoiceNumber String?
+
+  referenceNumber String?
+
+  //------------------------------------------------------------------
+  // MODULE SOURCE
+  //------------------------------------------------------------------
+
+  sourceModule String?
+
+  sourceRecordId String?
+
+  //------------------------------------------------------------------
+  // REMARKS
+  //------------------------------------------------------------------
+
+  remarks String?
+
+  //------------------------------------------------------------------
+  // CREATED BY
+  //------------------------------------------------------------------
+
+  createdByUserId String?
+
+  //------------------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  //------------------------------------------------------------------
+
+  @@index([schoolId])
+
+  @@index([studentId])
+
+  @@index([academicYearId])
+
+  @@index([transactionType])
+
+  @@index([transactionDate])
+
+  @@index([receiptNumber])
+
+  @@index([invoiceNumber])
+
+}
+
+
+
+//=====================================================================
+// FUTURE RELATION NOTES
+//=====================================================================
+//
+// sourceModule examples:
+//
+// Fee
+//
+// SchoolStore
+//
+// Library
+//
+// Transport
+//
+// Hostel
+//
+// Examination
+//
+// Admission
+//
+// Scholarship
+//
+// Refund
+//
+//
+//
+// sourceRecordId
+//
+// Stores the originating record id.
+//
+// Example:
+//
+// FeeReceipt.id
+//
+// StoreInvoice.id
+//
+// LibraryFine.id
+//
+// TransportInvoice.id
+//
+// HostelInvoice.id
+//
+//
+//
+// This avoids duplication while allowing every module
+// to post transactions into one unified ledger.
+//
+//=====================================================================
+//=====================================================================
+// SECTION 17
+// TRANSPORT MANAGEMENT
+//=====================================================================
+//
+// PURPOSE
+// --------------------------------------------------------------------
+// Complete School Transport Management System.
+//
+// FEATURES
+// --------------------------------------------------------------------
+// ✓ Vehicle Management
+// ✓ Driver Management
+// ✓ Conductor Management
+// ✓ Route Management
+// ✓ Route Stops
+// ✓ Student Transport Allocation
+// ✓ Transport Fee Plan
+// ✓ Vehicle Maintenance
+// ✓ GPS Ready (Future)
+// ✓ Live Tracking (Future)
+// ✓ Parent Notification (Future)
+// ✓ Student Financial Ledger Integration
+//
+// BUSINESS FLOW
+// --------------------------------------------------------------------
+//
+// Vehicle
+//      ↓
+// Route
+//      ↓
+// Stops
+//      ↓
+// Student Allocation
+//      ↓
+// Transport Fee
+//      ↓
+// Student Financial Ledger
+//
+//=====================================================================
+
+
+
+//=====================================================================
+// ENUMS
+//=====================================================================
+
+enum VehicleType {
+
+  SCHOOL_BUS
+
+  MINI_BUS
+
+  VAN
+
+  CAR
+
+}
+
+enum VehicleStatus {
+
+  ACTIVE
+
+  UNDER_MAINTENANCE
+
+  INACTIVE
+
+  SCRAPPED
+
+}
+
+enum RouteStatus {
+
+  ACTIVE
+
+  INACTIVE
+
+}
+
+enum StopStatus {
+
+  ACTIVE
+
+  INACTIVE
+
+}
+
+
+
+//=====================================================================
+// VEHICLE
+//=====================================================================
+
+model Vehicle {
+
+  //---------------------------------------------------------
+
+  id String @id @default(cuid())
+
+  //---------------------------------------------------------
+
+  schoolId String
+
+  school School
+      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  //---------------------------------------------------------
+
+  vehicleNumber String
+
+  vehicleName String?
+
+  vehicleType VehicleType
+
+  capacity Int
+
+  manufacturer String?
+
+  model String?
+
+  purchaseDate DateTime?
+
+  insuranceExpiry DateTime?
+
+  pollutionExpiry DateTime?
+
+  fitnessExpiry DateTime?
+
+  gpsDeviceId String?
+
+  status VehicleStatus @default(ACTIVE)
+
+  //---------------------------------------------------------
+
+  routes TransportRoute[]
+
+  //---------------------------------------------------------
+
+  createdByUserId String?
+
+  updatedByUserId String?
+
+  //---------------------------------------------------------
+
+  isDeleted Boolean @default(false)
+
+  deletedAt DateTime?
+
+  deletedBy String?
+
+  //---------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  //---------------------------------------------------------
+
+  @@unique([schoolId, vehicleNumber])
+
+  @@index([schoolId])
+
+  @@index([status])
+
+}
+
+
+
+//=====================================================================
+// DRIVER
+//=====================================================================
+
+model Driver {
+
+  id String @id @default(cuid())
+
+  schoolId String
+
+  school School
+      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+
+  employeeId String?
+
+  employee Employee?
+
+  licenseNumber String
+
+  licenseExpiry DateTime
+
+  experienceYears Int?
+
+  phone String?
+
+  address String?
+
+  assignedVehicleId String?
+
+  status EmployeeStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+//=====================================================================
+// CONDUCTOR
+//=====================================================================
+
+model Conductor {
+
+  id String @id @default(cuid())
+
+  schoolId String
+
+  school School
+      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+
+  employeeId String?
+
+  employee Employee?
+
+  assignedVehicleId String?
+
+  phone String?
+
+  status EmployeeStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+//=====================================================================
+// TRANSPORT ROUTE
+//=====================================================================
+
+model TransportRoute {
+
+  id String @id @default(cuid())
+
+  schoolId String
+
+  school School
+      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+
+  vehicleId String
+
+  vehicle Vehicle
+      @relation(fields:[vehicleId], references:[id])
+
+  routeName String
+
+  routeCode String
+
+  startLocation String
+
+  endLocation String
+
+  totalDistance Decimal
+      @db.Decimal(8,2)
+
+  estimatedTime Int?
+
+  status RouteStatus @default(ACTIVE)
+
+  stops TransportStop[]
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([schoolId, routeCode])
+
+}
+
+
+
+//=====================================================================
+// TRANSPORT STOP
+//=====================================================================
+
+model TransportStop {
+
+  id String @id @default(cuid())
+
+  routeId String
+
+  route TransportRoute
+      @relation(fields:[routeId], references:[id], onDelete:Cascade)
+
+  stopName String
+
+  stopOrder Int
+
+  pickupTime String?
+
+  dropTime String?
+
+  status StopStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+
+}
+//=====================================================================
+// SECTION 17 (PART-B)
+// STUDENT TRANSPORT ALLOCATION & TRANSPORT FINANCE
+//=====================================================================
+//
+// PURPOSE
+// --------------------------------------------------------------------
+// Allocates students to transport routes and manages transport fee plans.
+//
+// INTEGRATION
+// --------------------------------------------------------------------
+// ✓ Student
+// ✓ Transport Route
+// ✓ Student Financial Ledger
+// ✓ Notification Module
+// ✓ Parent Mobile App
+//
+//=====================================================================
+
+
+
+//=====================================================================
+// TRANSPORT FEE PLAN
+//=====================================================================
+
+model TransportFeePlan {
+
+  //------------------------------------------------------------------
+
+  id String @id @default(cuid())
+
+  //------------------------------------------------------------------
+
+  schoolId String
+
+  school School
+      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+
+  //------------------------------------------------------------------
+
+  planName String
+
+  routeId String?
+
+  route TransportRoute?
+      @relation(fields:[routeId], references:[id])
+
+  //------------------------------------------------------------------
+
+  monthlyFee Decimal
+      @db.Decimal(12,2)
+
+  yearlyFee Decimal?
+      @db.Decimal(12,2)
+
+  //------------------------------------------------------------------
+
+  effectiveFrom DateTime
+
+  effectiveTo DateTime?
+
+  //------------------------------------------------------------------
+
+  isActive Boolean @default(true)
+
+  //------------------------------------------------------------------
+
+  createdByUserId String?
+
+  updatedByUserId String?
+
+  //------------------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  //------------------------------------------------------------------
+
+  @@index([schoolId])
+
+}
+
+
+
+//=====================================================================
+// STUDENT TRANSPORT ALLOCATION
+//=====================================================================
+
+model StudentTransportAllocation {
+
+  //------------------------------------------------------------------
+
+  id String @id @default(cuid())
+
+  //------------------------------------------------------------------
+
+  schoolId String
+
+  school School
+      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+
+  //------------------------------------------------------------------
+
+  studentId String
+
+  student Student
+      @relation(fields:[studentId], references:[id], onDelete:Cascade)
+
+  //------------------------------------------------------------------
+
+  routeId String
+
+  route TransportRoute
+      @relation(fields:[routeId], references:[id])
+
+  //------------------------------------------------------------------
+
+  stopId String
+
+  stop TransportStop
+      @relation(fields:[stopId], references:[id])
+
+  //------------------------------------------------------------------
+
+  feePlanId String?
+
+  feePlan TransportFeePlan?
+      @relation(fields:[feePlanId], references:[id])
+
+  //------------------------------------------------------------------
+
+  pickupRequired Boolean @default(true)
+
+  dropRequired Boolean @default(true)
+
+  //------------------------------------------------------------------
+
+  effectiveFrom DateTime
+
+  effectiveTo DateTime?
+
+  //------------------------------------------------------------------
+
+  remarks String?
+
+  //------------------------------------------------------------------
+
+  isActive Boolean @default(true)
+
+  //------------------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  //------------------------------------------------------------------
+
+  @@index([studentId])
+
+  @@index([routeId])
+
+  @@index([schoolId])
+
+}
+
+
+
+//=====================================================================
+// VEHICLE MAINTENANCE
+//=====================================================================
+
+model VehicleMaintenance {
+
+  //------------------------------------------------------------------
+
+  id String @id @default(cuid())
+
+  //------------------------------------------------------------------
+
+  schoolId String
+
+  school School
+      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+
+  //------------------------------------------------------------------
+
+  vehicleId String
+
+  vehicle Vehicle
+      @relation(fields:[vehicleId], references:[id])
+
+  //------------------------------------------------------------------
+
+  maintenanceType String
+
+  description String?
+
+  //------------------------------------------------------------------
+
+  maintenanceDate DateTime
+
+  nextMaintenanceDate DateTime?
+
+  //------------------------------------------------------------------
+
+  serviceCenter String?
+
+  invoiceNumber String?
+
+  //------------------------------------------------------------------
+
+  maintenanceCost Decimal
+      @default(0.00)
+      @db.Decimal(12,2)
+
+  //------------------------------------------------------------------
+
+  remarks String?
+
+  //------------------------------------------------------------------
+
+  createdByUserId String?
+
+  //------------------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+//=====================================================================
+// FUTURE READY FEATURES
+//=====================================================================
+//
+// Version 2.0
+//
+// ✓ GPS Device
+// ✓ Live Bus Tracking
+// ✓ Parent Tracking
+// ✓ Driver Attendance
+// ✓ Driver Mobile App
+// ✓ Emergency SOS
+// ✓ Geo-fencing
+// ✓ AI Route Optimization
+//
+//=====================================================================
+//=====================================================================
+// SECTION 18
+// HOSTEL MANAGEMENT
+//=====================================================================
+//
+// PURPOSE
+// --------------------------------------------------------------------
+// Complete Hostel Management System
+//
+// FEATURES
+// --------------------------------------------------------------------
+// ✓ Hostel Management
+// ✓ Block Management
+// ✓ Floor Management
+// ✓ Room Management
+// ✓ Bed Management
+// ✓ Student Hostel Allocation
+// ✓ Warden Management
+// ✓ Hostel Fee Plan
+// ✓ Visitor Register
+// ✓ Leave Register
+// ✓ Student Ledger Integration
+//
+// FUTURE
+// --------------------------------------------------------------------
+// ✓ Biometric Attendance
+// ✓ Face Recognition
+// ✓ Hostel Mobile App
+// ✓ Parent Notification
+// ✓ AI Occupancy Analysis
+//
+//=====================================================================
+
+
+
+//=====================================================================
+// ENUMS
+//=====================================================================
+
+enum HostelStatus {
+
+  ACTIVE
+
+  INACTIVE
+
+}
+
+
+
+enum RoomStatus {
+
+  AVAILABLE
+
+  OCCUPIED
+
+  MAINTENANCE
+
+}
+
+
+
+enum BedStatus {
+
+  AVAILABLE
+
+  OCCUPIED
+
+  RESERVED
+
+}
+
+
+
+enum VisitorStatus {
+
+  PENDING
+
+  APPROVED
+
+  REJECTED
+
+}
+
+
+
+//=====================================================================
+// HOSTEL
+//=====================================================================
+
+model Hostel {
+
+  id String @id @default(cuid())
+
+  schoolId String
+
+  school School
+      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+
+  hostelName String
+
+  hostelCode String
+
+  gender Gender?
+
+  address String?
+
+  totalRooms Int
+
+  totalBeds Int
+
+  status HostelStatus @default(ACTIVE)
+
+  blocks HostelBlock[]
+
+  createdByUserId String?
+
+  updatedByUserId String?
+
+  isDeleted Boolean @default(false)
+
+  deletedAt DateTime?
+
+  deletedBy String?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([schoolId, hostelCode])
+
+}
+
+
+
+//=====================================================================
+// HOSTEL BLOCK
+//=====================================================================
+
+model HostelBlock {
+
+  id String @id @default(cuid())
+
+  hostelId String
+
+  hostel Hostel
+      @relation(fields:[hostelId], references:[id], onDelete:Cascade)
+
+  blockName String
+
+  floors HostelFloor[]
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+//=====================================================================
+// HOSTEL FLOOR
+//=====================================================================
+
+model HostelFloor {
+
+  id String @id @default(cuid())
+
+  blockId String
+
+  block HostelBlock
+      @relation(fields:[blockId], references:[id], onDelete:Cascade)
+
+  floorName String
+
+  rooms HostelRoom[]
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+//=====================================================================
+// HOSTEL ROOM
+//=====================================================================
+
+model HostelRoom {
+
+  id String @id @default(cuid())
+
+  floorId String
+
+  floor HostelFloor
+      @relation(fields:[floorId], references:[id], onDelete:Cascade)
+
+  roomNumber String
+
+  roomType String?
+
+  capacity Int
+
+  status RoomStatus @default(AVAILABLE)
+
+  beds HostelBed[]
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+//=====================================================================
+// HOSTEL BED
+//=====================================================================
+
+model HostelBed {
+
+  id String @id @default(cuid())
+
+  roomId String
+
+  room HostelRoom
+      @relation(fields:[roomId], references:[id], onDelete:Cascade)
+
+  bedNumber String
+
+  status BedStatus @default(AVAILABLE)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+//=====================================================================
+// SECTION 18 (PART-B)
+// HOSTEL OPERATIONS & HOSTEL FINANCE
+//=====================================================================
+//
+// PURPOSE
+// --------------------------------------------------------------------
+// Student Hostel Allocation
+// Hostel Fee Plans
+// Warden Management
+// Visitor Register
+// Leave Register
+// Student Financial Ledger Integration
+//
+//=====================================================================
+
+
+
+//=====================================================================
+// HOSTEL FEE PLAN
+//=====================================================================
+
+model HostelFeePlan {
+
+  id String @id @default(cuid())
+
+  //------------------------------------------------------------------
+
+  schoolId String
+
+  school School
+      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+
+  //------------------------------------------------------------------
+
+  planName String
+
+  hostelId String
+
+  hostel Hostel
+      @relation(fields:[hostelId], references:[id])
+
+  //------------------------------------------------------------------
+
+  monthlyFee Decimal
+      @db.Decimal(12,2)
+
+  yearlyFee Decimal?
+      @db.Decimal(12,2)
+
+  securityDeposit Decimal?
+      @db.Decimal(12,2)
+
+  messFee Decimal?
+      @db.Decimal(12,2)
+
+  electricityCharges Decimal?
+      @db.Decimal(12,2)
+
+  //------------------------------------------------------------------
+
+  effectiveFrom DateTime
+
+  effectiveTo DateTime?
+
+  //------------------------------------------------------------------
+
+  isActive Boolean @default(true)
+
+  //------------------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+//=====================================================================
+// STUDENT HOSTEL ALLOCATION
+//=====================================================================
+
+model StudentHostelAllocation {
+
+  id String @id @default(cuid())
+
+  //------------------------------------------------------------------
+
+  schoolId String
+
+  school School
+      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+
+  //------------------------------------------------------------------
+
+  studentId String
+
+  student Student
+      @relation(fields:[studentId], references:[id], onDelete:Cascade)
+
+  //------------------------------------------------------------------
+
+  hostelId String
+
+  hostel Hostel
+      @relation(fields:[hostelId], references:[id])
+
+  //------------------------------------------------------------------
+
+  roomId String
+
+  room HostelRoom
+      @relation(fields:[roomId], references:[id])
+
+  //------------------------------------------------------------------
+
+  bedId String
+
+  bed HostelBed
+      @relation(fields:[bedId], references:[id])
+
+  //------------------------------------------------------------------
+
+  feePlanId String?
+
+  feePlan HostelFeePlan?
+      @relation(fields:[feePlanId], references:[id])
+
+  //------------------------------------------------------------------
+
+  admissionDate DateTime
+
+  leavingDate DateTime?
+
+  //------------------------------------------------------------------
+
+  remarks String?
+
+  //------------------------------------------------------------------
+
+  isActive Boolean @default(true)
+
+  //------------------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  //------------------------------------------------------------------
+
+  @@index([studentId])
+
+  @@index([schoolId])
+
+}
+
+
+
+//=====================================================================
+// HOSTEL WARDEN
+//=====================================================================
+
+model HostelWarden {
+
+  id String @id @default(cuid())
+
+  schoolId String
+
+  school School
+      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+
+  employeeId String
+
+  employee Employee
+      @relation(fields:[employeeId], references:[id])
+
+  hostelId String
+
+  hostel Hostel
+      @relation(fields:[hostelId], references:[id])
+
+  joiningDate DateTime
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+//=====================================================================
+// HOSTEL VISITOR REGISTER
+//=====================================================================
+
+model HostelVisitor {
+
+  id String @id @default(cuid())
+
+  schoolId String
+
+  school School
+      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+
+  studentId String
+
+  student Student
+      @relation(fields:[studentId], references:[id])
+
+  visitorName String
+
+  relation String?
+
+  phone String?
+
+  visitDate DateTime
+
+  purpose String?
+
+  status VisitorStatus @default(PENDING)
+
+  remarks String?
+
+  createdAt DateTime @default(now())
+
+}
+
+
+
+//=====================================================================
+// HOSTEL LEAVE REGISTER
+//=====================================================================
+
+model HostelLeave {
+
+  id String @id @default(cuid())
+
+  schoolId String
+
+  school School
+      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+
+  studentId String
+
+  student Student
+      @relation(fields:[studentId], references:[id])
+
+  leaveFrom DateTime
+
+  leaveTo DateTime
+
+  reason String?
+
+  approvedByUserId String?
+
+  createdAt DateTime @default(now())
+
+}
+//=====================================================================
+// SECTION 19
+// SCHOOL STORE MANAGEMENT (ENTERPRISE EDITION)
+//=====================================================================
+//
+// PURPOSE
+// --------------------------------------------------------------------
+// Internal School Store Management
+//
+// FEATURES
+// --------------------------------------------------------------------
+// ✓ Books
+// ✓ Notebooks
+// ✓ Uniforms
+// ✓ Shoes
+// ✓ Bags
+// ✓ Stationery
+// ✓ Sports Material
+// ✓ Laboratory Items
+// ✓ Barcode Ready
+// ✓ QR Code Ready
+// ✓ POS Billing
+// ✓ Student Ledger Integration
+// ✓ Inventory Integration
+// ✓ Vendor Management
+// ✓ Purchase Orders
+// ✓ Purchase Bills
+// ✓ Sales Register
+// ✓ Stock Register
+//
+// FUTURE
+// --------------------------------------------------------------------
+// ✓ Parent Online Store
+// ✓ Online Payment
+// ✓ Mobile Store App
+// ✓ AI Stock Prediction
+// ✓ Auto Reorder
+//
+//=====================================================================
+
+
+
+//=====================================================================
+// ENUMS
+//=====================================================================
+
+enum ProductCategory {
+
+  BOOK
+
+  NOTEBOOK
+
+  UNIFORM
+
+  SHOES
+
+  BAG
+
+  STATIONERY
+
+  SPORTS
+
+  LAB
+
+  OTHER
+
+}
+
+
+
+enum ProductStatus {
+
+  ACTIVE
+
+  INACTIVE
+
+}
+
+
+
+enum InventoryTransactionType {
+
+  PURCHASE
+
+  SALE
+
+  RETURN
+
+  DAMAGE
+
+  ADJUSTMENT
+
+}
+
+
+
+//=====================================================================
+// PRODUCT MASTER
+//=====================================================================
+
+model StoreProduct {
+
+  id String @id @default(cuid())
+
+  //--------------------------------------------------------
+
+  schoolId String
+
+  school School
+      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+
+  //--------------------------------------------------------
+
+  productCode String
+
+  productName String
+
+  category ProductCategory
+
+  description String?
+
+  //--------------------------------------------------------
+
+  barcode String?
+
+  qrCode String?
+
+  //--------------------------------------------------------
+
+  unit String?
+
+  //--------------------------------------------------------
+
+  purchasePrice Decimal
+      @db.Decimal(12,2)
+
+  sellingPrice Decimal
+      @db.Decimal(12,2)
+
+  gstPercentage Decimal?
+      @db.Decimal(5,2)
+
+  //--------------------------------------------------------
+
+  minimumStock Int @default(0)
+
+  maximumStock Int?
+
+  currentStock Int @default(0)
+
+  //--------------------------------------------------------
+
+  status ProductStatus
+      @default(ACTIVE)
+
+  //--------------------------------------------------------
+
+  createdByUserId String?
+
+  updatedByUserId String?
+
+  //--------------------------------------------------------
+
+  isDeleted Boolean @default(false)
+
+  deletedAt DateTime?
+
+  deletedBy String?
+
+  //--------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  //--------------------------------------------------------
+
+  @@unique([schoolId, productCode])
+
+  @@index([category])
+
+  @@index([currentStock])
+
+}//=====================================================================
+// SECTION 19 (PART-B)
+// SCHOOL STORE OPERATIONS
+//=====================================================================
+//
+// PURPOSE
+// --------------------------------------------------------------------
+// Complete Store Operations
+//
+// ✓ Vendor Management
+// ✓ Purchase Orders
+// ✓ Purchase Bills
+// ✓ Inventory Transactions
+// ✓ Student Billing
+// ✓ Student Ledger Integration
+// ✓ Accounts Integration
+//
+//=====================================================================
+
+
+
+//=====================================================================
+// VENDOR MASTER
+//=====================================================================
+
+model StoreVendor {
+
+  id String @id @default(cuid())
+
+  schoolId String
+
+  school School
+      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+
+  vendorCode String
+
+  vendorName String
+
+  contactPerson String?
+
+  phone String?
+
+  email String?
+
+  address String?
+
+  gstNumber String?
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([schoolId, vendorCode])
+
+}
+
+
+
+//=====================================================================
+// PURCHASE ORDER
+//=====================================================================
+
+model PurchaseOrder {
+
+  id String @id @default(cuid())
+
+  schoolId String
+
+  school School
+      @relation(fields:[schoolId], references:[id])
+
+  vendorId String
+
+  vendor StoreVendor
+      @relation(fields:[vendorId], references:[id])
+
+  purchaseOrderNumber String
+
+  orderDate DateTime
+
+  expectedDelivery DateTime?
+
+  totalAmount Decimal
+      @db.Decimal(12,2)
+
+  remarks String?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+//=====================================================================
+// PURCHASE ORDER ITEMS
+//=====================================================================
+
+model PurchaseOrderItem {
+
+  id String @id @default(cuid())
+
+  purchaseOrderId String
+
+  purchaseOrder PurchaseOrder
+      @relation(fields:[purchaseOrderId], references:[id], onDelete:Cascade)
+
+  productId String
+
+  product StoreProduct
+      @relation(fields:[productId], references:[id])
+
+  quantity Int
+
+  purchasePrice Decimal
+      @db.Decimal(12,2)
+
+  total Decimal
+      @db.Decimal(12,2)
+
+}
+
+
+
+//=====================================================================
+// INVENTORY TRANSACTIONS
+//=====================================================================
+
+model InventoryTransaction {
+
+  id String @id @default(cuid())
+
+  schoolId String
+
+  school School
+      @relation(fields:[schoolId], references:[id])
+
+  productId String
+
+  product StoreProduct
+      @relation(fields:[productId], references:[id])
+
+  transactionType InventoryTransactionType
+
+  quantity Int
+
+  balanceAfterTransaction Int
+
+  remarks String?
+
+  sourceModule String?
+
+  sourceRecordId String?
+
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+
+}
+
+
+
+//=====================================================================
+// STUDENT STORE INVOICE
+//=====================================================================
+
+model StudentStoreInvoice {
+
+  id String @id @default(cuid())
+
+  schoolId String
+
+  school School
+      @relation(fields:[schoolId], references:[id])
+
+  studentId String
+
+  student Student
+      @relation(fields:[studentId], references:[id])
+
+  invoiceNumber String
+
+  invoiceDate DateTime
+
+  subtotal Decimal
+      @db.Decimal(12,2)
+
+  discount Decimal
+      @default(0.00)
+      @db.Decimal(12,2)
+
+  gst Decimal
+      @default(0.00)
+      @db.Decimal(12,2)
+
+  totalAmount Decimal
+      @db.Decimal(12,2)
+
+  paymentReceived Boolean
+      @default(false)
+
+  remarks String?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([schoolId, invoiceNumber])
+
+}
+
+
+
+//=====================================================================
+// STUDENT STORE INVOICE ITEMS
+//=====================================================================
+
+model StudentStoreInvoiceItem {
+
+  id String @id @default(cuid())
+
+  invoiceId String
+
+  invoice StudentStoreInvoice
+      @relation(fields:[invoiceId], references:[id], onDelete:Cascade)
+
+  productId String
+
+  product StoreProduct
+      @relation(fields:[productId], references:[id])
+
+  quantity Int
+
+  sellingPrice Decimal
+      @db.Decimal(12,2)
+
+  discount Decimal
+      @default(0.00)
+      @db.Decimal(12,2)
+
+  gst Decimal
+      @default(0.00)
+      @db.Decimal(12,2)
+
+  total Decimal
+      @db.Decimal(12,2)
+
+}
+//=====================================================================
+// SECTION 20
+// INVENTORY & ASSET MANAGEMENT
+//=====================================================================
+//
+// PURPOSE
+// --------------------------------------------------------------------
+// Enterprise Asset Management System
+//
+// FEATURES
+// --------------------------------------------------------------------
+// ✓ Asset Categories
+// ✓ Asset Registration
+// ✓ Asset Assignment
+// ✓ Asset Maintenance
+// ✓ Asset Depreciation Ready
+// ✓ Asset Transfer
+// ✓ Asset Disposal
+// ✓ Warranty Tracking
+// ✓ QR / Barcode Ready
+// ✓ Audit Ready
+//
+// FUTURE
+// --------------------------------------------------------------------
+// ✓ AMC Management
+// ✓ Preventive Maintenance
+// ✓ AI Asset Health Prediction
+// ✓ Mobile Asset Scanning
+//
+//=====================================================================
+
+
+
+//=====================================================================
+// ENUMS
+//=====================================================================
+
+enum AssetCategory {
+
+  COMPUTER
+
+  LAPTOP
+
+  PRINTER
+
+  SMART_BOARD
+
+  PROJECTOR
+
+  FURNITURE
+
+  LAB_EQUIPMENT
+
+  SPORTS
+
+  MUSIC
+
+  ELECTRICAL
+
+  VEHICLE
+
+  OTHER
+
+}
+
+
+
+enum AssetStatus {
+
+  AVAILABLE
+
+  ASSIGNED
+
+  UNDER_MAINTENANCE
+
+  LOST
+
+  SCRAPPED
+
+}
+
+
+
+enum AssetCondition {
+
+  NEW
+
+  GOOD
+
+  FAIR
+
+  DAMAGED
+
+}
+
+
+
+//=====================================================================
+// ASSET MASTER
+//=====================================================================
+
+model Asset {
+
+  //------------------------------------------------------------
+
+  id String @id @default(cuid())
+
+  //------------------------------------------------------------
+
+  schoolId String
+
+  school School
+      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+
+  //------------------------------------------------------------
+
+  assetCode String
+
+  assetName String
+
+  category AssetCategory
+
+  //------------------------------------------------------------
+
+  serialNumber String?
+
+  barcode String?
+
+  qrCode String?
+
+  //------------------------------------------------------------
+
+  manufacturer String?
+
+  modelNumber String?
+
+  //------------------------------------------------------------
+
+  purchaseDate DateTime?
+
+  purchasePrice Decimal?
+      @db.Decimal(12,2)
+
+  warrantyExpiry DateTime?
+
+  //------------------------------------------------------------
+
+  currentValue Decimal?
+      @db.Decimal(12,2)
+
+  //------------------------------------------------------------
+
+  condition AssetCondition
+      @default(NEW)
+
+  //------------------------------------------------------------
+
+  status AssetStatus
+      @default(AVAILABLE)
+
+  //------------------------------------------------------------
+
+  description String?
+
+  //------------------------------------------------------------
+
+  assignments AssetAssignment[]
+
+  maintenances AssetMaintenance[]
+
+  //------------------------------------------------------------
+
+  createdByUserId String?
+
+  updatedByUserId String?
+
+  //------------------------------------------------------------
+
+  isDeleted Boolean @default(false)
+
+  deletedAt DateTime?
+
+  deletedBy String?
+
+  //------------------------------------------------------------
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  //------------------------------------------------------------
+
+  @@unique([schoolId, assetCode])
+
+  @@index([schoolId])
+
+  @@index([category])
+
+  @@index([status])
+
+}
+
+//=====================================================================
+// SECTION 20 (PART-B)
+// INVENTORY & ASSET MANAGEMENT
+// ASSET OPERATIONS
+//=====================================================================
+//
+// FEATURES
+// --------------------------------------------------------------------
+// ✓ Asset Assignment
+// ✓ Asset Transfer
+// ✓ Asset Maintenance
+// ✓ Annual Maintenance Contract (AMC)
+// ✓ Asset Audit
+// ✓ Asset Disposal
+// ✓ Complete Asset History
+//
+//=====================================================================
+
+
+
+//=====================================================================
+// ENUMS
+//=====================================================================
+
+enum AssetAssignmentType {
+  EMPLOYEE
+  CLASSROOM
+  LAB
+  OFFICE
+  LIBRARY
+  STORE
+  OTHER
+}
+
+enum MaintenanceStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum DisposalType {
+  SOLD
+  SCRAPPED
+  DONATED
+  LOST
+}
+
+enum AuditResult {
+  VERIFIED
+  MISSING
+  DAMAGED
+}
+
+
+
+//=====================================================================
+// ASSET ASSIGNMENT
+//=====================================================================
+
+model AssetAssignment {
+
+  id String @id @default(cuid())
+
+  assetId String
+  asset Asset @relation(fields:[assetId], references:[id], onDelete:Cascade)
+
+  assignmentType AssetAssignmentType
+
+  assignedEmployeeId String?
+  assignedRoomId String?
+  assignedDepartmentId String?
+
+  assignedDate DateTime
+
+  expectedReturnDate DateTime?
+
+  returnedDate DateTime?
+
+  remarks String?
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([assetId])
+}
+
+
+
+//=====================================================================
+// ASSET TRANSFER
+//=====================================================================
+
+model AssetTransfer {
+
+  id String @id @default(cuid())
+
+  assetId String
+  asset Asset @relation(fields:[assetId], references:[id])
+
+  fromLocation String
+
+  toLocation String
+
+  transferDate DateTime
+
+  transferredByUserId String?
+
+  approvedByUserId String?
+
+  remarks String?
+
+  createdAt DateTime @default(now())
+
+}
+
+
+
+//=====================================================================
+// ASSET MAINTENANCE
+//=====================================================================
+
+model AssetMaintenance {
+
+  id String @id @default(cuid())
+
+  assetId String
+  asset Asset @relation(fields:[assetId], references:[id])
+
+  complaintDate DateTime
+
+  maintenanceDate DateTime?
+
+  maintenanceStatus MaintenanceStatus
+      @default(OPEN)
+
+  vendorName String?
+
+  description String?
+
+  maintenanceCost Decimal?
+      @db.Decimal(12,2)
+
+  nextMaintenanceDate DateTime?
+
+  createdByUserId String?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+//=====================================================================
+// ANNUAL MAINTENANCE CONTRACT
+//=====================================================================
+
+model AssetAMC {
+
+  id String @id @default(cuid())
+
+  assetId String
+  asset Asset @relation(fields:[assetId], references:[id])
+
+  vendorName String
+
+  contractNumber String?
+
+  startDate DateTime
+
+  endDate DateTime
+
+  contractAmount Decimal?
+      @db.Decimal(12,2)
+
+  serviceFrequencyMonths Int?
+
+  remarks String?
+
+  createdAt DateTime @default(now())
+
+}
+
+
+
+//=====================================================================
+// ASSET AUDIT
+//=====================================================================
+
+model AssetAudit {
+
+  id String @id @default(cuid())
+
+  assetId String
+
+  asset Asset @relation(fields:[assetId], references:[id])
+
+  auditDate DateTime
+
+  verifiedByUserId String?
+
+  auditResult AuditResult
+
+  remarks String?
+
+  createdAt DateTime @default(now())
+
+}
+
+
+
+//=====================================================================
+// ASSET DISPOSAL
+//=====================================================================
+
+model AssetDisposal {
+
+  id String @id @default(cuid())
+
+  assetId String
+
+  asset Asset @relation(fields:[assetId], references:[id])
+
+  disposalType DisposalType
+
+  disposalDate DateTime
+
+  disposalValue Decimal?
+      @db.Decimal(12,2)
+
+  approvedByUserId String?
+
+  remarks String?
+
+  createdAt DateTime @default(now())
+
+}
+
+
+
+//=====================================================================
+// ASSET HISTORY
+//=====================================================================
+
+model AssetHistory {
+
+  id String @id @default(cuid())
+
+  assetId String
+
+  asset Asset @relation(fields:[assetId], references:[id], onDelete:Cascade)
+
+  activity String
+
+  referenceModule String?
+
+  referenceId String?
+
+  performedByUserId String?
+
+  activityDate DateTime @default(now())
+
+  remarks String?
+
+  createdAt DateTime @default(now())
+
+}
+//======================================================================
+// SECTION 21
+// ADMISSION MANAGEMENT
+//======================================================================
+//
+// PURPOSE
+// -------
+// Manages the complete admission lifecycle:
+//
+// Enquiry
+// → Registration
+// → Admission Application
+// → Student Details
+// → Parent Details
+// → Previous School
+// → Government IDs
+// → Medical
+// → Documents
+// → Entrance Test
+// → Interview
+// → Admission Offer
+// → Payment
+// → Approval
+// → Student Creation
+//
+// NOTE
+// ----
+// This section is LOCKED as Admission Management v1.0.
+// Future modules (Finance, Documents, AI, SaaS) will EXTEND this section,
+// not redesign it.
+//
+//======================================================================
+
+
+
+//======================================================================
+// ADMISSION ENUMS
+//======================================================================
+
+enum AdmissionType {
+  FRESH
+  READMISSION
+  TRANSFER
+  MIGRATION
+}
+
+enum AdmissionStatus {
+  ENQUIRY
+  APPLICATION_SUBMITTED
+  DOCUMENT_PENDING
+  DOCUMENT_VERIFIED
+  ENTRANCE_PENDING
+  INTERVIEW_PENDING
+  OFFERED
+  WAITING_LIST
+  PAYMENT_PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum EnquirySource {
+  WALK_IN
+  WEBSITE
+  PHONE
+  SOCIAL_MEDIA
+  REFERENCE
+  OTHER
+}
+
+
+
+//======================================================================
+// 21.1
+// ADMISSION ENQUIRY
+//======================================================================
+
+model AdmissionEnquiry {
+
+  //=========================
+  // Primary Key
+  //=========================
+
+  id String @id @default(cuid())
+
+  //=========================
+  // School
+  //=========================
+
+  schoolId String
+
+  school School
+    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  //=========================
+  // Academic Session
+  //=========================
+
+  academicSessionId String
+
+  // Future Relation:
+  // academicSession AcademicSession
+
+  //=========================
+  // Enquiry Information
+  //=========================
+
+  enquiryNumber String
+
+  enquirySource EnquirySource
+    @default(WALK_IN)
+
+  enquiryDate DateTime
+    @default(now())
+
+  //=========================
+  // Student Information
+  //=========================
+
+  studentName String
+
+  interestedClass String
+
+  dateOfBirth DateTime?
+
+  gender Gender?
+
+  //=========================
+  // Parent Information
+  //=========================
+
+  parentName String
+
+  mobile String
+
+  alternateMobile String?
+
+  email String?
+
+  address String?
+
+  city String?
+
+  state String?
+
+  remarks String?
+
+  followUpDate DateTime?
+
+  convertedToApplication Boolean
+    @default(false)
+
+  //=========================
+  // Audit
+  //=========================
+
+  createdByUserId String?
+
+  createdAt DateTime
+    @default(now())
+
+  updatedAt DateTime
+    @updatedAt
+
+  //=========================
+  // Relations
+  //=========================
+
+  application AdmissionApplication?
+
+  //=========================
+  // Constraints
+  //=========================
+
+  @@unique([schoolId, enquiryNumber])
+
+  @@index([schoolId])
+
+  @@index([academicSessionId])
+
+  @@index([mobile])
+
+  @@index([convertedToApplication])
+
+}
+
+
+
+//======================================================================
+// 21.2
+// ADMISSION APPLICATION
+// MASTER RECORD
+//======================================================================
+
+model AdmissionApplication {
+
+  //=========================
+  // Primary Key
+  //=========================
+
+  id String @id @default(cuid())
+
+  //=========================
+  // School
+  //=========================
+
+  schoolId String
+
+  school School
+    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  //=========================
+  // Academic Session
+  //=========================
+
+  academicSessionId String
+
+  // Future Relation:
+  // academicSession AcademicSession
+
+  //=========================
+  // Enquiry
+  //=========================
+
+  enquiryId String?
+
+  enquiry AdmissionEnquiry?
+    @relation(fields: [enquiryId], references: [id])
+
+  //=========================
+  // Application Details
+  //=========================
+
+  applicationNumber String
+
+  admissionType AdmissionType
+    @default(FRESH)
+
+  admissionStatus AdmissionStatus
+    @default(APPLICATION_SUBMITTED)
+
+  classApplied String
+
+  sectionPreference String?
+
+  applicationDate DateTime
+    @default(now())
+
+  remarks String?
+
+  rejectionReason String?
+
+  //=========================
+  // Approval
+  //=========================
+
+  approvedByUserId String?
+
+  approvedAt DateTime?
+
+  //=========================
+  // Audit
+  //=========================
+
+  createdByUserId String?
+
+  createdAt DateTime
+    @default(now())
+
+  updatedAt DateTime
+    @updatedAt
+
+  //=========================
+  // Relations
+  //=========================
+
+  studentProfile AdmissionStudentProfile?
+
+  // Part 2
+  family AdmissionFamily?
+
+  previousSchool AdmissionPreviousSchool?
+
+  governmentIdentity AdmissionGovernmentIdentity?
+
+  // Part 3
+  medical AdmissionMedical?
+
+  preferences AdmissionPreference?
+
+  documents AdmissionDocument[]
+
+  // Part 4
+  entranceExam AdmissionEntranceExam?
+
+  interview AdmissionInterview?
+
+  offer AdmissionOffer?
+
+  payments AdmissionPayment[]
+
+  // Part 5
+  waitingList AdmissionWaitingList?
+
+  history AdmissionHistory[]
+
+  //=========================
+  // Constraints
+  //=========================
+
+  @@unique([schoolId, applicationNumber])
+
+  @@index([schoolId])
+
+  @@index([academicSessionId])
+
+  @@index([admissionStatus])
+
+}
+
+
+
+//======================================================================
+// 21.3
+// ADMISSION STUDENT PROFILE
+//======================================================================
+
+model AdmissionStudentProfile {
+
+  id String @id @default(cuid())
+
+  applicationId String @unique
+
+  application AdmissionApplication
+    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  firstName String
+
+  middleName String?
+
+  lastName String?
+
+  gender Gender?
+
+  dateOfBirth DateTime
+
+  bloodGroup String?
+
+  religion String?
+
+  category String?
+
+  nationality String?
+
+  motherTongue String?
+
+  birthPlace String?
+
+  studentPhoto String?
+
+  createdAt DateTime
+    @default(now())
+
+  updatedAt DateTime
+    @updatedAt
+
+}
+//======================================================================
+// 21.4
+// ADMISSION FAMILY DETAILS
+//======================================================================
+//
+// PURPOSE
+// -------
+// Stores family, guardian and emergency contact information.
+//
+// Future Modules
+// --------------
+// • Parent Portal
+// • Fee Management
+// • Communication
+// • Emergency Management
+//
+//======================================================================
+
+model AdmissionFamily {
+
+  //=========================
+  // Primary Key
+  //=========================
+
+  id String @id @default(cuid())
+
+  //=========================
+  // Admission
+  //=========================
+
+  applicationId String @unique
+
+  application AdmissionApplication
+    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  //====================================================
+  // FATHER DETAILS
+  //====================================================
+
+  fatherName String
+
+  fatherOccupation String?
+
+  fatherQualification String?
+
+  fatherMobile String?
+
+  fatherEmail String?
+
+  fatherAadhaar String?
+
+  //====================================================
+  // MOTHER DETAILS
+  //====================================================
+
+  motherName String?
+
+  motherOccupation String?
+
+  motherQualification String?
+
+  motherMobile String?
+
+  motherEmail String?
+
+  motherAadhaar String?
+
+  //====================================================
+  // GUARDIAN DETAILS
+  //====================================================
+
+  guardianName String?
+
+  guardianRelation String?
+
+  guardianOccupation String?
+
+  guardianMobile String?
+
+  guardianEmail String?
+
+  guardianAddress String?
+
+  //====================================================
+  // FAMILY INFORMATION
+  //====================================================
+
+  annualIncome Decimal?
+    @db.Decimal(12,2)
+
+  familyCategory String?
+
+  economicallyWeakerSection Boolean
+    @default(false)
+
+  //====================================================
+  // EMERGENCY
+  //====================================================
+
+  emergencyContactName String?
+
+  emergencyContactNumber String?
+
+  emergencyRelation String?
+
+  //====================================================
+  // AUDIT
+  //====================================================
+
+  createdAt DateTime
+    @default(now())
+
+  updatedAt DateTime
+    @updatedAt
+
+}
+
+
+
+
+//======================================================================
+// 21.5
+// PREVIOUS SCHOOL DETAILS
+//======================================================================
+//
+// PURPOSE
+// -------
+// Required for:
+// • Transfer Admission
+// • Migration
+// • Board Change
+//
+//======================================================================
+
+model AdmissionPreviousSchool {
+
+  id String @id @default(cuid())
+
+  applicationId String @unique
+
+  application AdmissionApplication
+    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  previousSchoolName String?
+
+  previousSchoolAddress String?
+
+  previousBoard String?
+
+  previousUDISECode String?
+
+  previousClass String?
+
+  previousSection String?
+
+  previousRollNumber String?
+
+  previousAdmissionNumber String?
+
+  transferCertificateNumber String?
+
+  migrationCertificateNumber String?
+
+  lastResult String?
+
+  percentage Decimal?
+    @db.Decimal(5,2)
+
+  passingYear Int?
+
+  reasonForLeaving String?
+
+  createdAt DateTime
+    @default(now())
+
+  updatedAt DateTime
+    @updatedAt
+
+}
+
+
+
+
+//======================================================================
+// 21.6
+// GOVERNMENT IDENTITY
+//======================================================================
+//
+// PURPOSE
+// -------
+// Government IDs required by
+// • NEP 2020
+// • APAAR
+// • UDISE+
+// • Future DigiLocker Integration
+//
+//======================================================================
+
+model AdmissionGovernmentIdentity {
+
+  id String @id @default(cuid())
+
+  applicationId String @unique
+
+  application AdmissionApplication
+    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  //====================================================
+  // STUDENT IDs
+  //====================================================
+
+  studentAadhaar String?
+
+  apaarId String?
+
+  penNumber String?
+
+  birthCertificateNumber String?
+
+  passportNumber String?
+
+  //====================================================
+  // VERIFICATION
+  //====================================================
+
+  aadhaarVerified Boolean
+    @default(false)
+
+  apaarVerified Boolean
+    @default(false)
+
+  penVerified Boolean
+    @default(false)
+
+  verifiedByUserId String?
+
+  verifiedAt DateTime?
+
+  remarks String?
+
+  createdAt DateTime
+    @default(now())
+
+  updatedAt DateTime
+    @updatedAt
+
+  @@index([studentAadhaar])
+
+  @@index([apaarId])
+
+  @@index([penNumber])
+
+}
+//======================================================================
+// 21.7
+// ADMISSION MEDICAL DETAILS
+//======================================================================
+//
+// PURPOSE
+// -------
+// Medical information collected during admission.
+//
+// Future Integration
+// ------------------
+// • Health Module
+// • AI Health Alerts
+// • Emergency Management
+//
+//======================================================================
+
+model AdmissionMedical {
+
+  id String @id @default(cuid())
+
+  applicationId String @unique
+
+  application AdmissionApplication
+    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  bloodGroup String?
+
+  allergies String?
+
+  medicalConditions String?
+
+  disabilityCategory String?
+
+  cwsn Boolean @default(false)
+
+  doctorName String?
+
+  doctorPhone String?
+
+  emergencyMedicalNotes String?
+
+  height Decimal?
+    @db.Decimal(5,2)
+
+  weight Decimal?
+    @db.Decimal(5,2)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+//======================================================================
+// 21.8
+// ADMISSION PREFERENCES
+//======================================================================
+//
+// PURPOSE
+// -------
+// Stores preferences selected during admission.
+//
+//======================================================================
+
+model AdmissionPreference {
+
+  id String @id @default(cuid())
+
+  applicationId String @unique
+
+  application AdmissionApplication
+    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  //=========================
+  // Academic
+  //=========================
+
+  preferredSection String?
+
+  preferredLanguage String?
+
+  secondLanguage String?
+
+  electiveSubjects String?
+
+  housePreference String?
+
+  //=========================
+  // Facilities
+  //=========================
+
+  requiresTransport Boolean
+    @default(false)
+
+  preferredTransportRoute String?
+
+  preferredTransportStop String?
+
+  requiresHostel Boolean
+    @default(false)
+
+  requiresMess Boolean
+    @default(false)
+
+  //=========================
+  // Financial
+  //=========================
+
+  scholarshipCategory String?
+
+  feeConcession Boolean
+    @default(false)
+
+  feeConcessionReason String?
+
+  remarks String?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+//======================================================================
+// 21.9
+// ADMISSION DOCUMENTS
+//======================================================================
+//
+// PURPOSE
+// -------
+// Tracks all admission documents.
+//
+// NOTE
+// ----
+// Actual file storage will come in
+// Section 23 - Document Management.
+//
+//======================================================================
+
+enum AdmissionDocumentType {
+
+  BIRTH_CERTIFICATE
+
+  STUDENT_AADHAAR
+
+  FATHER_AADHAAR
+
+  MOTHER_AADHAAR
+
+  APAAR_ID
+
+  PEN_NUMBER
+
+  TRANSFER_CERTIFICATE
+
+  MIGRATION_CERTIFICATE
+
+  PREVIOUS_REPORT_CARD
+
+  CASTE_CERTIFICATE
+
+  INCOME_CERTIFICATE
+
+  MEDICAL_CERTIFICATE
+
+  DISABILITY_CERTIFICATE
+
+  ADDRESS_PROOF
+
+  PASSPORT_PHOTO
+
+  OTHER
+
+}
+
+enum DocumentVerificationStatus {
+
+  PENDING
+
+  VERIFIED
+
+  REJECTED
+
+}
+
+
+
+model AdmissionDocument {
+
+  id String @id @default(cuid())
+
+  applicationId String
+
+  application AdmissionApplication
+    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  documentType AdmissionDocumentType
+
+  documentName String
+
+  // Future:
+  // fileId -> Section 23 Document Repository
+
+  documentPath String?
+
+  verificationStatus DocumentVerificationStatus
+    @default(PENDING)
+
+  verifiedByUserId String?
+
+  verifiedAt DateTime?
+
+  rejectionReason String?
+
+  remarks String?
+
+  uploadedAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([applicationId])
+
+  @@index([documentType])
+
+  @@index([verificationStatus])
+
+}//======================================================================
+// SECTION 21.10
+// ADMISSION ENTRANCE EXAMINATION
+//======================================================================
+//
+// PURPOSE
+// -------
+// Stores entrance examination information.
+//
+// Future Integration
+// ------------------
+// • Examination Module (Section 11)
+// • AI Student Evaluation
+//
+//======================================================================
+
+enum AdmissionExamResult {
+  PENDING
+  PASSED
+  FAILED
+  EXEMPTED
+}
+
+model AdmissionEntranceExam {
+
+  //=========================
+  // Primary Key
+  //=========================
+
+  id String @id @default(cuid())
+
+  //=========================
+  // Admission Application
+  //=========================
+
+  applicationId String @unique
+
+  application AdmissionApplication
+    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  //=========================
+  // Examination Details
+  //=========================
+
+  examDate DateTime?
+
+  subject String?
+
+  examinerName String?
+
+  maximumMarks Decimal?
+    @db.Decimal(6,2)
+
+  obtainedMarks Decimal?
+    @db.Decimal(6,2)
+
+  percentage Decimal?
+    @db.Decimal(5,2)
+
+  result AdmissionExamResult
+    @default(PENDING)
+
+  remarks String?
+
+  //=========================
+  // Audit
+  //=========================
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+//======================================================================
+// SECTION 21.11
+// ADMISSION INTERVIEW
+//======================================================================
+//
+// PURPOSE
+// -------
+// Stores interview details.
+//
+//======================================================================
+
+enum AdmissionInterviewRecommendation {
+  RECOMMENDED
+  WAITING_LIST
+  REJECTED
+}
+
+model AdmissionInterview {
+
+  id String @id @default(cuid())
+
+  applicationId String @unique
+
+  application AdmissionApplication
+    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  interviewDate DateTime?
+
+  interviewerName String?
+
+  interviewerDesignation String?
+
+  recommendation AdmissionInterviewRecommendation?
+
+  remarks String?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+
+
+
+//======================================================================
+// SECTION 21.12
+// ADMISSION OFFER
+//======================================================================
+//
+// PURPOSE
+// -------
+// Offer issued after approval.
+//
+//======================================================================
+
+enum AdmissionOfferStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+model AdmissionOffer {
+
+  id String @id @default(cuid())
+
+  applicationId String @unique
+
+  application AdmissionApplication
+    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  offerNumber String
+
+  offerDate DateTime
+
+  acceptanceDeadline DateTime?
+
+  offeredClass String
+
+  offeredSection String?
+
+  remarks String?
+
+  status AdmissionOfferStatus
+    @default(PENDING)
+
+  acceptedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+
+}
+
+
+
+//======================================================================
+// SECTION 21.13
+// ADMISSION PAYMENT
+//======================================================================
+//
+// PURPOSE
+// -------
+// Admission-related payment tracking.
+//
+// NOTE
+// ----
+// Financial transactions will later link with
+// Section 22 (Accounts & Finance).
+//
+//======================================================================
+
+enum AdmissionPaymentStatus {
+  PENDING
+  PARTIAL
+  PAID
+  REFUNDED
+  CANCELLED
+}
+
+model AdmissionPayment {
+
+  id String @id @default(cuid())
+
+  applicationId String
+
+  application AdmissionApplication
+    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  receiptNumber String?
+
+  registrationFee Decimal?
+    @db.Decimal(12,2)
+
+  admissionFee Decimal?
+    @db.Decimal(12,2)
+
+  prospectusFee Decimal?
+    @db.Decimal(12,2)
+
+  scholarshipAmount Decimal?
+    @db.Decimal(12,2)
+
+  concessionAmount Decimal?
+    @db.Decimal(12,2)
+
+  totalAmount Decimal?
+    @db.Decimal(12,2)
+
+  paymentMode String?
+
+  paymentReference String?
+
+  paymentDate DateTime?
+
+  status AdmissionPaymentStatus
+    @default(PENDING)
+
+  remarks String?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([applicationId])
+
+  @@index([status])
+
+}
+//======================================================================
+// SECTION 21.14
+// ADMISSION WAITING LIST
+//======================================================================
+//
+// PURPOSE
+// -------
+// Stores applications placed on the waiting list.
+//
+// Future Integration
+// ------------------
+// • AI Seat Allocation
+// • Auto Promotion from Waiting List
+//
+//======================================================================
+
+enum WaitingListStatus {
+  ACTIVE
+  OFFERED
+  ADMITTED
+  CANCELLED
+  EXPIRED
+}
+
+model AdmissionWaitingList {
+
+  //=========================
+  // Primary Key
+  //=========================
+
+  id String @id @default(cuid())
+
+  //=========================
+  // Admission Application
+  //=========================
+
+  applicationId String @unique
+
+  application AdmissionApplication
+    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  //=========================
+  // Waiting Details
+  //=========================
+
+  waitingNumber Int
+
+  priority Int @default(1)
+
+  waitingReason String?
+
+  status WaitingListStatus
+    @default(ACTIVE)
+
+  offeredOn DateTime?
+
+  expiryDate DateTime?
+
+  remarks String?
+
+  //=========================
+  // Audit
+  //=========================
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+
+}
+
+
+
+//======================================================================
+// SECTION 21.15
+// ADMISSION HISTORY
+//======================================================================
+//
+// PURPOSE
+// -------
+// Complete audit trail of admission activities.
+//
+//======================================================================
+
+enum AdmissionHistoryAction {
+
+  ENQUIRY_CREATED
+
+  APPLICATION_CREATED
+
+  DOCUMENT_UPLOADED
+
+  DOCUMENT_VERIFIED
+
+  ENTRANCE_COMPLETED
+
+  INTERVIEW_COMPLETED
+
+  OFFER_GENERATED
+
+  PAYMENT_RECEIVED
+
+  WAITING_LISTED
+
+  APPROVED
+
+  REJECTED
+
+  CANCELLED
+
+  STUDENT_CREATED
+
+}
+
+model AdmissionHistory {
+
+  id String @id @default(cuid())
+
+  applicationId String
+
+  application AdmissionApplication
+    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  action AdmissionHistoryAction
+
+  actionDate DateTime
+    @default(now())
+
+  performedByUserId String?
+
+  description String?
+
+  remarks String?
+
+  createdAt DateTime
+    @default(now())
+
+  @@index([applicationId])
+
+  @@index([action])
+
+}
+
+
+
+//======================================================================
+// FUTURE INTEGRATION NOTES
+//======================================================================
+//
+// After Principal Approval:
+//
+// 1. Student Record Created
+//
+// 2. Parent Login Created
+//
+// 3. Student Financial Ledger Created
+//
+// 4. Fee Structure Assigned
+//
+// 5. Library Account Created
+//
+// 6. Attendance Profile Created
+//
+// 7. Student ID Card Generated
+//
+// 8. Transport Request Generated
+//
+// 9. Hostel Request Generated
+//
+// 10. Welcome SMS
+//
+// 11. Welcome Email
+//
+// 12. WhatsApp Notification
+//
+// These automations will be implemented
+// in NestJS services, NOT inside Prisma.
+//
+//======================================================================
+//======================================================================
+// SECTION 22.1
+// FINANCIAL LEDGER
+//======================================================================
+//
+// PURPOSE
+// -------
+// Master financial ledger.
+//
+// Every financial transaction from every module eventually creates
+// ledger entries.
+//
+// Future Modules
+// --------------
+// • Fee Management
+// • Store
+// • Hostel
+// • Transport
+// • Payroll
+// • Accounts
+//
+//======================================================================
+
+
+
+//======================================================================
+// LEDGER TYPE
+//======================================================================
+
+enum LedgerType {
+
+  ASSET
+
+  LIABILITY
+
+  INCOME
+
+  EXPENSE
+
+  EQUITY
+
+}
+
+
+
+//======================================================================
+// LEDGER STATUS
+//======================================================================
+
+enum LedgerStatus {
+
+  ACTIVE
+
+  INACTIVE
+
+}
+
+
+
+//======================================================================
+// FINANCIAL LEDGER
+//======================================================================
+
+model FinancialLedger {
+
+  //=========================
+  // Primary Key
+  //=========================
+
+  id String @id @default(cuid())
+
+  //=========================
+  // School
+  //=========================
+
+  schoolId String
+
+  school School
+    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  //=========================
+  // Ledger Information
+  //=========================
+
+  ledgerCode String
+
+  ledgerName String
+
+  ledgerType LedgerType
+
+  description String?
+
+  openingBalance Decimal
+    @default(0)
+    @db.Decimal(15,2)
+
+  currentBalance Decimal
+    @default(0)
+    @db.Decimal(15,2)
+
+  status LedgerStatus
+    @default(ACTIVE)
+
+  isSystemLedger Boolean
+    @default(false)
+
+  //=========================
+  // Future Relations
+  //=========================
+
+  // vouchers FinancialVoucher[]
+
+  //=========================
+  // Audit
+  //=========================
+
+  createdAt DateTime
+    @default(now())
+
+  updatedAt DateTime
+    @updatedAt
+
+  //=========================
+  // Constraints
+  //=========================
+
+  @@unique([schoolId, ledgerCode])
+
+  @@unique([schoolId, ledgerName])
+
+  @@index([schoolId])
+
+  @@index([ledgerType])
+
+  @@index([status])
+
+}
+//======================================================================
+// SECTION 22.2
+// CHART OF ACCOUNTS (COA)
+//======================================================================
+//
+// PURPOSE
+// -------
+// Defines the accounting hierarchy used throughout the ERP.
+//
+// Examples:
+//
+// Assets
+// ├── Cash
+// ├── Bank
+//
+// Liabilities
+// ├── Security Deposit
+//
+// Income
+// ├── Tuition Fee
+// ├── Admission Fee
+//
+// Expenses
+// ├── Salary
+// ├── Electricity
+//
+//======================================================================
+
+
+
+//======================================================================
+// ACCOUNT CATEGORY
+//======================================================================
+
+enum AccountCategory {
+
+  ASSET
+
+  LIABILITY
+
+  EQUITY
+
+  INCOME
+
+  EXPENSE
+
+}
+
+
+
+//======================================================================
+// ACCOUNT NATURE
+//======================================================================
+
+enum AccountNature {
+
+  DEBIT
+
+  CREDIT
+
+}
+
+
+
+//======================================================================
+// CHART OF ACCOUNTS
+//======================================================================
+
+model ChartOfAccount {
+
+  //=========================
+  // Primary Key
+  //=========================
+
+  id String @id @default(cuid())
+
+  //=========================
+  // School
+  //=========================
+
+  schoolId String
+
+  school School
+    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  //=========================
+  // Account Information
+  //=========================
+
+  accountCode String
+
+  accountName String
+
+  accountCategory AccountCategory
+
+  accountNature AccountNature
+
+  description String?
+
+  //=========================
+  // Parent Account
+  //=========================
+
+  parentAccountId String?
+
+  parentAccount ChartOfAccount?
+    @relation("ChartHierarchy", fields: [parentAccountId], references: [id])
+
+  childAccounts ChartOfAccount[]
+    @relation("ChartHierarchy")
+
+  //=========================
+  // Ledger Mapping
+  //=========================
+
+  ledgerId String?
+
+  ledger FinancialLedger?
+    @relation(fields: [ledgerId], references: [id])
+
+  //=========================
+  // Settings
+  //=========================
+
+  isSystemAccount Boolean
+    @default(false)
+
+  isActive Boolean
+    @default(true)
+
+  //=========================
+  // Audit
+  //=========================
+
+  createdAt DateTime
+    @default(now())
+
+  updatedAt DateTime
+    @updatedAt
+
+  //=========================
+  // Constraints
+  //=========================
+
+  @@unique([schoolId, accountCode])
+
+  @@unique([schoolId, accountName])
+
+  @@index([schoolId])
+
+  @@index([accountCategory])
+
+  @@index([isActive])
+
+}//======================================================================
+// SECTION 22.3
+// VOUCHER MANAGEMENT
+//======================================================================
+//
+// PURPOSE
+// -------
+// Every financial transaction in the ERP generates a Voucher.
+//
+// This follows Double Entry Accounting.
+//
+// Example
+//
+// Student Fee Paid:
+//
+// Debit
+//    Cash
+//
+// Credit
+//    Tuition Fee
+//
+//======================================================================
+
+
+
+//======================================================================
+// VOUCHER TYPE
+//======================================================================
+
+enum VoucherType {
+
+  PAYMENT
+
+  RECEIPT
+
+  JOURNAL
+
+  CONTRA
+
+  SALES
+
+  PURCHASE
+
+  REFUND
+
+}
+
+
+
+//======================================================================
+// VOUCHER STATUS
+//======================================================================
+
+enum VoucherStatus {
+
+  DRAFT
+
+  POSTED
+
+  CANCELLED
+
+}
+
+
+
+//======================================================================
+// FINANCIAL VOUCHER
+//======================================================================
+
+model FinancialVoucher {
+
+  //======================================================
+  // PRIMARY KEY
+  //======================================================
+
+  id String @id @default(cuid())
+
+
+
+  //======================================================
+  // SCHOOL
+  //======================================================
+
+  schoolId String
+
+  school School
+    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+
+
+  //======================================================
+  // BASIC INFORMATION
+  //======================================================
+
+  voucherNumber String
+
+  voucherType VoucherType
+
+  voucherDate DateTime
+
+  description String?
+
+
+
+  //======================================================
+  // AMOUNT
+  //======================================================
+
+  totalAmount Decimal
+    @db.Decimal(15,2)
+
+
+
+  //======================================================
+  // STATUS
+  //======================================================
+
+  status VoucherStatus
+    @default(DRAFT)
+
+
+
+  //======================================================
+  // SOURCE MODULE
+  //======================================================
+
+  sourceModule String?
+
+  sourceDocumentId String?
+
+
+
+  //======================================================
+  // FUTURE REFERENCES
+  //======================================================
+
+  studentId String?
+
+  employeeId String?
+
+  vendorId String?
+
+
+
+  //======================================================
+  // RELATIONS
+  //======================================================
+
+  entries VoucherEntry[]
+
+
+
+  //======================================================
+  // AUDIT
+  //======================================================
+
+  createdByUserId String?
+
+  approvedByUserId String?
+
+  approvedAt DateTime?
+
+  createdAt DateTime
+    @default(now())
+
+  updatedAt DateTime
+    @updatedAt
+
+
+
+  //======================================================
+  // CONSTRAINTS
+  //======================================================
+
+  @@unique([schoolId, voucherNumber])
+
+  @@index([schoolId])
+
+  @@index([voucherType])
+
+  @@index([voucherDate])
+
+  @@index([status])
+
+}
+
+
+
+
+
+//======================================================================
+// VOUCHER ENTRY
+//======================================================================
+//
+// PURPOSE
+// -------
+// Every Voucher contains
+// one or more debit entries
+// and one or more credit entries.
+//
+//======================================================================
+
+enum EntryType {
+
+  DEBIT
+
+  CREDIT
+
+}
+
+model VoucherEntry {
+
+  id String @id @default(cuid())
+
+
+
+  //======================================================
+  // VOUCHER
+  //======================================================
+
+  voucherId String
+
+  voucher FinancialVoucher
+    @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+
+
+
+  //======================================================
+  // LEDGER
+  //======================================================
+
+  ledgerId String
+
+  ledger FinancialLedger
+    @relation(fields: [ledgerId], references: [id])
+
+
+
+  //======================================================
+  // ENTRY
+  //======================================================
+
+  entryType EntryType
+
+  amount Decimal
+    @db.Decimal(15,2)
+
+  narration String?
+
+
+
+  //======================================================
+  // AUDIT
+  //======================================================
+
+  createdAt DateTime
+    @default(now())
+
+
+
+  //======================================================
+  // INDEXES
+  //======================================================
+
+  @@index([voucherId])
+
+  @@index([ledgerId])
+
+}
+//======================================================================
+// SECTION 22.4
+// PAYMENT COLLECTION
+//======================================================================
+//
+// PURPOSE
+// -------
+// Stores payment collection details.
+//
+// NOTE
+// ----
+// This is NOT the accounting entry.
+// Accounting is handled by FinancialVoucher.
+//
+// PaymentCollection links operational modules
+// with the accounting system.
+//
+//======================================================================
+
+
+
+//======================================================================
+// PAYMENT SOURCE
+//======================================================================
+
+enum PaymentSource {
+
+  ADMISSION
+
+  STUDENT_FEE
+
+  TRANSPORT
+
+  HOSTEL
+
+  LIBRARY
+
+  STORE
+
+  EXAMINATION
+
+  CERTIFICATE
+
+  OTHER
+
+}
+
+
+
+//======================================================================
+// PAYMENT MODE
+//======================================================================
+
+enum PaymentMode {
+
+  CASH
+
+  CHEQUE
+
+  DD
+
+  UPI
+
+  NET_BANKING
+
+  CREDIT_CARD
+
+  DEBIT_CARD
+
+  QR_CODE
+
+  ONLINE_GATEWAY
+
+}
+
+
+
+//======================================================================
+// PAYMENT STATUS
+//======================================================================
+
+enum PaymentCollectionStatus {
+
+  PENDING
+
+  SUCCESS
+
+  FAILED
+
+  CANCELLED
+
+  REFUNDED
+
+}
+
+
+
+//======================================================================
+// PAYMENT COLLECTION
+//======================================================================
+
+model PaymentCollection {
+
+  //=========================
+  // Primary Key
+  //=========================
+
+  id String @id @default(cuid())
+
+
+
+  //=========================
+  // School
+  //=========================
+
+  schoolId String
+
+  school School
+    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+
+
+  //=========================
+  // Voucher
+  //=========================
+
+  voucherId String?
+
+  voucher FinancialVoucher?
+    @relation(fields: [voucherId], references: [id])
+
+
+
+  //=========================
+  // Source
+  //=========================
+
+  paymentSource PaymentSource
+
+  sourceRecordId String?
+
+
+
+  //=========================
+  // Student
+  //=========================
+
+  studentId String?
+
+
+
+  //=========================
+  // Amount
+  //=========================
+
+  amount Decimal
+    @db.Decimal(15,2)
+
+
+
+  //=========================
+  // Payment Details
+  //=========================
+
+  paymentMode PaymentMode
+
+  paymentDate DateTime
+
+  transactionReference String?
+
+  bankName String?
+
+  chequeNumber String?
+
+  chequeDate DateTime?
+
+
+
+  //=========================
+  // Online Gateway
+  //=========================
+
+  gatewayName String?
+
+  gatewayTransactionId String?
+
+
+
+  //=========================
+  // Receipt
+  //=========================
+
+  receiptNumber String?
+
+
+
+  //=========================
+  // Status
+  //=========================
+
+  status PaymentCollectionStatus
+    @default(PENDING)
+
+
+
+  remarks String?
+
+
+
+  //=========================
+  // Audit
+  //=========================
+
+  collectedByUserId String?
+
+  createdAt DateTime
+    @default(now())
+
+  updatedAt DateTime
+    @updatedAt
+
+
+
+  //=========================
+  // Constraints
+  //=========================
+
+  @@index([schoolId])
+
+  @@index([studentId])
+
+  @@index([voucherId])
+
+  @@index([paymentSource])
+
+  @@index([status])
+
+}
+//======================================================================
+// SECTION 22.5
+// PAYROLL MANAGEMENT
+//======================================================================
+//
+// PURPOSE
+// -------
+// Handles employee salary processing.
+//
+// Integrates with:
+//
+// HR
+// Employee
+// Attendance
+// Leave
+// Finance
+// Bank
+//
+//======================================================================
+
+
+
+//======================================================================
+// PAYROLL STATUS
+//======================================================================
+
+enum PayrollStatus {
+
+  DRAFT
+
+  PROCESSING
+
+  APPROVED
+
+  PAID
+
+  CANCELLED
+
+}
+
+
+
+//======================================================================
+// SALARY COMPONENT TYPE
+//======================================================================
+
+enum SalaryComponentType {
+
+  EARNING
+
+  DEDUCTION
+
+}
+
+
+
+//======================================================================
+// SALARY COMPONENT
+//======================================================================
+
+model SalaryComponent {
+
+  id String @id @default(cuid())
+
+  schoolId String
+
+  school School
+    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  componentCode String
+
+  componentName String
+
+  componentType SalaryComponentType
+
+  taxable Boolean @default(false)
+
+  active Boolean @default(true)
+
+  description String?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([schoolId, componentCode])
+
+}
+
+
+
+//======================================================================
+// EMPLOYEE SALARY STRUCTURE
+//======================================================================
+
+model EmployeeSalaryStructure {
+
+  id String @id @default(cuid())
+
+  schoolId String
+
+  school School
+    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  employeeId String
+
+  basicSalary Decimal
+    @db.Decimal(15,2)
+
+  grossSalary Decimal
+    @db.Decimal(15,2)
+
+  effectiveFrom DateTime
+
+  effectiveTo DateTime?
+
+  active Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([employeeId])
+
+}
+
+
+
+//======================================================================
+// PAYROLL PROCESS
+//======================================================================
+
+model PayrollProcess {
+
+  id String @id @default(cuid())
+
+  schoolId String
+
+  school School
+    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  payrollMonth Int
+
+  payrollYear Int
+
+  payrollStatus PayrollStatus
+    @default(DRAFT)
+
+  processedDate DateTime?
+
+  approvedDate DateTime?
+
+  voucherId String?
+
+  voucher FinancialVoucher?
+    @relation(fields: [voucherId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([schoolId, payrollMonth, payrollYear])
+
+}
+
+
+
+//======================================================================
+// PAYROLL SLIP
+//======================================================================
+
+model PayrollSlip {
+
+  id String @id @default(cuid())
+
+  payrollProcessId String
+
+  payrollProcess PayrollProcess
+    @relation(fields: [payrollProcessId], references: [id], onDelete: Cascade)
+
+  employeeId String
+
+  grossSalary Decimal
+    @db.Decimal(15,2)
+
+  totalAllowance Decimal
+    @db.Decimal(15,2)
+
+  totalDeduction Decimal
+    @db.Decimal(15,2)
+
+  netSalary Decimal
+    @db.Decimal(15,2)
+
+  generatedDate DateTime
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([employeeId])
+
+}
+
+
+
+//======================================================================
+// PAYROLL PAYMENT
+//======================================================================
+
+model PayrollPayment {
+
+  id String @id @default(cuid())
+
+  payrollSlipId String @unique
+
+  payrollSlip PayrollSlip
+    @relation(fields: [payrollSlipId], references: [id], onDelete: Cascade)
+
+  paymentDate DateTime?
+
+  paymentMode PaymentMode
+
+  transactionReference String?
+
+  voucherId String?
+
+  voucher FinancialVoucher?
+    @relation(fields: [voucherId], references: [id])
+
+  remarks String?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+}
+//======================================================================
+// SECTION 22.5.1
+// EMPLOYEE SALARY COMPONENT
+//======================================================================
+//
+// PURPOSE
+// -------
+// Maps salary components to an employee's salary structure.
+//
+// This allows every school to create completely custom salary structures
+// without modifying the database.
+//
+//======================================================================
+
+model EmployeeSalaryComponent {
+
+  //======================================================
+  // Primary Key
+  //======================================================
+
+  id String @id @default(cuid())
+
+  //======================================================
+  // Salary Structure
+  //======================================================
+
+  salaryStructureId String
+
+  salaryStructure EmployeeSalaryStructure
+    @relation(fields: [salaryStructureId], references: [id], onDelete: Cascade)
+
+  //======================================================
+  // Salary Component
+  //======================================================
+
+  salaryComponentId String
+
+  salaryComponent SalaryComponent
+    @relation(fields: [salaryComponentId], references: [id])
+
+  //======================================================
+  // Component Amount
+  //======================================================
+
+  amount Decimal
+    @db.Decimal(15,2)
+
+  percentage Decimal?
+    @db.Decimal(6,2)
+
+  calculationFormula String?
+
+  //======================================================
+  // Settings
+  //======================================================
+
+  isFixed Boolean
+    @default(true)
+
+  active Boolean
+    @default(true)
+
+  //======================================================
+  // Audit
+  //======================================================
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  //======================================================
+  // Constraints
+  //======================================================
+
+  @@unique([salaryStructureId, salaryComponentId])
+
+  @@index([salaryStructureId])
+
+  @@index([salaryComponentId])
+
+}//======================================================================
+// SECTION 22.6
+// VENDOR & SUPPLIER MANAGEMENT
+//======================================================================
+//
+// PURPOSE
+// -------
+// Central vendor master used across the ERP.
+//
+// Used By:
+// • Inventory & Assets
+// • School Store
+// • Hostel
+// • Transport
+// • Maintenance
+// • Finance
+//
+//======================================================================
+
+
+
+//======================================================================
+// VENDOR STATUS
+//======================================================================
+
+enum VendorStatus {
+
+  ACTIVE
+
+  INACTIVE
+
+  BLOCKED
+
+}
+
+
+
+//======================================================================
+// VENDOR CATEGORY
+//======================================================================
+
+enum VendorCategory {
+
+  BOOKS
+
+  NOTEBOOKS
+
+  UNIFORMS
+
+  STATIONERY
+
+  TRANSPORT
+
+  HOSTEL
+
+  MAINTENANCE
+
+  ELECTRICAL
+
+  FURNITURE
+
+  COMPUTER
+
+  PRINTING
+
+  FOOD
+
+  CONTRACTOR
+
+  OTHER
+
+}
+
+
+
+//======================================================================
+// VENDOR MASTER
+//======================================================================
+
+model Vendor {
+
+  //======================================================
+  // PRIMARY KEY
+  //======================================================
+
+  id String @id @default(cuid())
+
+
+
+  //======================================================
+  // SCHOOL
+  //======================================================
+
+  schoolId String
+
+  school School
+    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+
+
+  //======================================================
+  // BASIC INFORMATION
+  //======================================================
+
+  vendorCode String
+
+  vendorName String
+
+  category VendorCategory
+
+  status VendorStatus
+    @default(ACTIVE)
+
+
+
+  //======================================================
+  // CONTACT INFORMATION
+  //======================================================
+
+  contactPerson String?
+
+  mobileNumber String?
+
+  alternateMobile String?
+
+  email String?
+
+  website String?
+
+
+
+  //======================================================
+  // ADDRESS
+  //======================================================
+
+  addressLine1 String?
+
+  addressLine2 String?
+
+  city String?
+
+  district String?
+
+  state String?
+
+  country String?
+
+  pinCode String?
+
+
+
+  //======================================================
+  // TAX DETAILS
+  //======================================================
+
+  gstNumber String?
+
+  panNumber String?
+
+
+
+  //======================================================
+  // BANK DETAILS
+  //======================================================
+
+  accountHolderName String?
+
+  bankName String?
+
+  accountNumber String?
+
+  ifscCode String?
+
+  branchName String?
+
+
+
+  //======================================================
+  // FINANCIAL
+  //======================================================
+
+  openingBalance Decimal
+    @default(0)
+    @db.Decimal(15,2)
+
+  creditLimit Decimal?
+    @db.Decimal(15,2)
+
+
+
+  //======================================================
+  // NOTES
+  //======================================================
+
+  remarks String?
+
+
+
+  //======================================================
+  // AUDIT
+  //======================================================
+
+  createdAt DateTime
+    @default(now())
+
+  updatedAt DateTime
+    @updatedAt
+
+
+
+  //======================================================
+  // CONSTRAINTS
+  //======================================================
+
+  @@unique([schoolId, vendorCode])
+
+  @@index([schoolId])
+
+  @@index([category])
+
+  @@index([status])
+
+}
+//======================================================================
+// SECTION 22.7
+// FINANCIAL RECONCILIATION
+//======================================================================
+//
+// PURPOSE
+// -------
+// Tracks reconciliation between ERP financial records
+// and actual cash, bank, payment gateway,
+// or external financial statements.
+//
+//======================================================================
+
+
+
+//======================================================================
+// RECONCILIATION TYPE
+//======================================================================
+
+enum ReconciliationType {
+
+  CASH
+
+  BANK
+
+  PAYMENT_GATEWAY
+
+  STUDENT_LEDGER
+
+  VENDOR_LEDGER
+
+  PAYROLL
+
+}
+
+
+
+//======================================================================
+// RECONCILIATION STATUS
+//======================================================================
+
+enum ReconciliationStatus {
+
+  PENDING
+
+  PARTIAL
+
+  COMPLETED
+
+  MISMATCH
+
+}
+
+
+
+//======================================================================
+// FINANCIAL RECONCILIATION
+//======================================================================
+
+model FinancialReconciliation {
+
+  id String @id @default(cuid())
+
+  //======================================================
+  // SCHOOL
+  //======================================================
+
+  schoolId String
+
+  school School
+    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+
+
+  //======================================================
+  // BASIC INFORMATION
+  //======================================================
+
+  reconciliationNumber String
+
+  reconciliationType ReconciliationType
+
+  reconciliationDate DateTime
+
+
+
+  //======================================================
+  // AMOUNTS
+  //======================================================
+
+  systemAmount Decimal
+    @db.Decimal(15,2)
+
+  actualAmount Decimal
+    @db.Decimal(15,2)
+
+  differenceAmount Decimal
+    @db.Decimal(15,2)
+
+
+
+  //======================================================
+  // STATUS
+  //======================================================
+
+  status ReconciliationStatus
+    @default(PENDING)
+
+
+
+  remarks String?
+
+
+
+  //======================================================
+  // AUDIT
+  //======================================================
+
+  verifiedByUserId String?
+
+  verifiedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+
+
+  //======================================================
+  // CONSTRAINTS
+  //======================================================
+
+  @@unique([schoolId, reconciliationNumber])
+
+  @@index([schoolId])
+
+  @@index([reconciliationType])
+
+  @@index([status])
+
+}
+//======================================================================
+// END OF SCHEMA
+//======================================================================
+//
+// PROJECT
+// -------
+// MySchool Platform ERP (Enterprise Edition)
+//
+// DATABASE SCHEMA
+// ----------------
+// Version : 1.0
+//
+// STATUS
+// ------
+// Schema Frozen
+//
+// This schema is considered stable and forms the foundation of the
+// MySchool Platform ERP.
+//
+// FUTURE DEVELOPMENT POLICY
+// -------------------------
+// - Existing models should not be renamed unless absolutely necessary.
+// - Existing relations should remain backward compatible.
+// - New functionality should be added by introducing NEW models.
+// - Existing tables may receive new optional fields when required.
+// - Destructive schema changes should be avoided after production.
+//
+// RESERVED FOR FUTURE VERSIONS
+// ----------------------------
+// Version 2.x
+//   • School Store / POS
+//   • Procurement
+//   • Visitor Management
+//   • Alumni Management
+//   • Health Management
+//   • Event Management
+//   • Discipline Management
+//   • Workflow Engine
+//   • API Marketplace
+//   • Advanced AI
+//   • Business Intelligence
+//   • Multi-Campus
+//   • Franchise Management
+//
+//======================================================================
+// END OF FILE
+//======================================================================
