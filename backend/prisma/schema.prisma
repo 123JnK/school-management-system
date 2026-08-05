@@ -19,7 +19,6 @@
 // • Prefer optional fields over destructive changes.
 //============================================================
 
-
 //============================================================
 // SECTION 01
 // PRISMA CONFIGURATION
@@ -116,6 +115,7 @@ enum TeacherStatus {
   ON_LEAVE
   RESIGNED
 }
+
 //============================================================
 // SECTION 03
 // FOUNDATION MODULE
@@ -139,14 +139,13 @@ enum TeacherStatus {
 //============================================================
 
 model School {
-
   id String @id @default(cuid())
 
   // ---------- Basic Information ----------
   name String
   code String @unique
 
-  email String @unique
+  email String  @unique
   phone String?
 
   website String?
@@ -156,12 +155,12 @@ model School {
   principalName String?
 
   // ---------- Address ----------
-  address String?
-  city String?
+  address  String?
+  city     String?
   district String?
-  state String?
-  country String?
-  pincode String?
+  state    String?
+  country  String?
+  pincode  String?
 
   // ---------- Subscription ----------
   subscription SubscriptionPlan @default(TRIAL)
@@ -192,6 +191,58 @@ model School {
 
   updatedAt DateTime @updatedAt
 
+  Student                    Student[]
+  Parent                     Parent[]
+  AcademicClass              AcademicClass[]
+  AcademicSection            AcademicSection[]
+  Subject                    Subject[]
+  House                      House[]
+  WorkingDay                 WorkingDay[]
+  SchoolPeriod               SchoolPeriod[]
+  ClassTimetable             ClassTimetable[]
+  StudentAttendance          StudentAttendance[]
+  Exam                       Exam[]
+  FeeHead                    FeeHead[]
+  FeeStructure               FeeStructure[]
+  Homework                   Homework[]
+  StudyMaterial              StudyMaterial[]
+  Notification               Notification[]
+  Announcement               Announcement[]
+  Message                    Message[]
+  BookCategory               BookCategory[]
+  Book                       Book[]
+  BookIssue                  BookIssue[]
+  StudentLedger              StudentLedger[]
+  Vehicle                    Vehicle[]
+  Driver                     Driver[]
+  Conductor                  Conductor[]
+  TransportRoute             TransportRoute[]
+  TransportFeePlan           TransportFeePlan[]
+  StudentTransportAllocation StudentTransportAllocation[]
+  VehicleMaintenance         VehicleMaintenance[]
+  Hostel                     Hostel[]
+  HostelFeePlan              HostelFeePlan[]
+  StudentHostelAllocation    StudentHostelAllocation[]
+  HostelWarden               HostelWarden[]
+  HostelVisitor              HostelVisitor[]
+  HostelLeave                HostelLeave[]
+  StoreProduct               StoreProduct[]
+  StoreVendor                StoreVendor[]
+  PurchaseOrder              PurchaseOrder[]
+  InventoryTransaction       InventoryTransaction[]
+  StudentStoreInvoice        StudentStoreInvoice[]
+  Asset                      Asset[]
+  AdmissionEnquiry           AdmissionEnquiry[]
+  AdmissionApplication       AdmissionApplication[]
+  FinancialLedger            FinancialLedger[]
+  ChartOfAccount             ChartOfAccount[]
+  FinancialVoucher           FinancialVoucher[]
+  PaymentCollection          PaymentCollection[]
+  SalaryComponent            SalaryComponent[]
+  EmployeeSalaryStructure    EmployeeSalaryStructure[]
+  PayrollProcess             PayrollProcess[]
+  Vendor                     Vendor[]
+  FinancialReconciliation    FinancialReconciliation[]
 }
 
 //============================================================
@@ -199,13 +250,11 @@ model School {
 //============================================================
 
 model SchoolSettings {
-
   id String @id @default(cuid())
 
   schoolId String @unique
 
-  school School
-    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //----------------------------------------------------------
   // Academic
@@ -258,7 +307,6 @@ model SchoolSettings {
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
-
 }
 
 //============================================================
@@ -266,13 +314,11 @@ model SchoolSettings {
 //============================================================
 
 model AcademicYear {
-
   id String @id @default(cuid())
 
   schoolId String
 
-  school School
-    @relation(fields:[schoolId], references:[id], onDelete: Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   name String
 
@@ -288,10 +334,18 @@ model AcademicYear {
 
   updatedAt DateTime @updatedAt
 
+  AcademicSession      AcademicSession[]
+  StudentEnrollment    StudentEnrollment[]
+  SubjectTeacher       SubjectTeacher[]
+  AcademicClassTeacher AcademicClassTeacher[]
+  ClassTimetable       ClassTimetable[]
+  Exam                 Exam[]
+  FeeStructure         FeeStructure[]
+  Homework             Homework[]
+  StudentLedger        StudentLedger[]
+
   @@unique([schoolId, name])
-
   @@index([schoolId])
-
 }
 
 //============================================================
@@ -299,18 +353,15 @@ model AcademicYear {
 //============================================================
 
 model AcademicSession {
-
   id String @id @default(cuid())
 
   schoolId String
 
-  school School
-    @relation(fields:[schoolId], references:[id], onDelete: Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   academicYearId String
 
-  academicYear AcademicYear
-    @relation(fields:[academicYearId], references:[id])
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id])
 
   name String
 
@@ -325,7 +376,6 @@ model AcademicSession {
   updatedAt DateTime @updatedAt
 
   @@index([schoolId])
-
 }
 
 //============================================================
@@ -333,13 +383,11 @@ model AcademicSession {
 //============================================================
 
 model HolidayCalendar {
-
   id String @id @default(cuid())
 
   schoolId String
 
-  school School
-    @relation(fields:[schoolId], references:[id], onDelete: Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   title String
 
@@ -354,8 +402,8 @@ model HolidayCalendar {
   updatedAt DateTime @updatedAt
 
   @@index([schoolId])
-
 }
+
 //============================================================
 // SECTION 04
 // IDENTITY & USER MANAGEMENT
@@ -386,7 +434,6 @@ model HolidayCalendar {
 //============================================================
 
 model User {
-
   //----------------------------------------------------------
   // PRIMARY KEY
   //----------------------------------------------------------
@@ -399,8 +446,7 @@ model User {
 
   schoolId String?
 
-  school School?
-    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school School? @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //----------------------------------------------------------
   // LOGIN
@@ -488,19 +534,17 @@ model User {
 
   updatedAt DateTime @updatedAt
 
+  NotificationDelivery NotificationDelivery[]
+
   //----------------------------------------------------------
   // INDEXES
   //----------------------------------------------------------
-
   @@index([schoolId])
-
   @@index([role])
-
   @@index([isActive])
-
   @@index([isDeleted])
-
 }
+
 //============================================================
 // SECTION 05
 // HUMAN RESOURCE (HR) CORE
@@ -527,19 +571,16 @@ model User {
 //
 //============================================================
 
-
 //============================================================
 // DEPARTMENT
 //============================================================
 
 model Department {
-
   id String @id @default(cuid())
 
   schoolId String
 
-  school School
-    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   name String
 
@@ -558,29 +599,23 @@ model Department {
   updatedAt DateTime @updatedAt
 
   @@unique([schoolId, code])
-
   @@index([schoolId])
-
 }
-
 
 //============================================================
 // DESIGNATION
 //============================================================
 
 model Designation {
-
   id String @id @default(cuid())
 
   schoolId String
 
-  school School
-    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   departmentId String?
 
-  department Department?
-    @relation(fields: [departmentId], references: [id])
+  department Department? @relation(fields: [departmentId], references: [id])
 
   name String
 
@@ -597,16 +632,13 @@ model Designation {
   updatedAt DateTime @updatedAt
 
   @@unique([schoolId, name])
-
 }
-
 
 //============================================================
 // EMPLOYEE
 //============================================================
 
 model Employee {
-
   //----------------------------------------------------------
   // PRIMARY KEY
   //----------------------------------------------------------
@@ -619,8 +651,7 @@ model Employee {
 
   schoolId String
 
-  school School
-    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //----------------------------------------------------------
   // USER ACCOUNT
@@ -628,8 +659,7 @@ model Employee {
 
   userId String @unique
 
-  user User
-    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   //----------------------------------------------------------
   // BASIC DETAILS
@@ -663,21 +693,17 @@ model Employee {
 
   departmentId String?
 
-  department Department?
-    @relation(fields: [departmentId], references: [id])
+  department Department? @relation(fields: [departmentId], references: [id])
 
   designationId String?
 
-  designation Designation?
-    @relation(fields: [designationId], references: [id])
+  designation Designation? @relation(fields: [designationId], references: [id])
 
   joiningDate DateTime
 
-  employmentType EmploymentType
-    @default(FULL_TIME)
+  employmentType EmploymentType @default(FULL_TIME)
 
-  status EmployeeStatus
-    @default(ACTIVE)
+  status EmployeeStatus @default(ACTIVE)
 
   //----------------------------------------------------------
   // PROFESSIONAL
@@ -717,24 +743,22 @@ model Employee {
 
   updatedAt DateTime @updatedAt
 
+  EmployeeAttendance EmployeeAttendance[]
+  BookIssue          BookIssue[]
+  Driver             Driver[]
+  Conductor          Conductor[]
+  HostelWarden       HostelWarden[]
+
   //----------------------------------------------------------
   // INDEXES
   //----------------------------------------------------------
-
   @@unique([schoolId, employeeCode])
-
   @@index([schoolId])
-
   @@index([status])
-
   @@index([departmentId])
-
   @@index([designationId])
-
   @@index([isDeleted])
-
 }
-
 
 //============================================================
 // EMPLOYEE ROLE
@@ -753,13 +777,11 @@ model Employee {
 //============================================================
 
 model EmployeeRole {
-
   id String @id @default(cuid())
 
   employeeId String
 
-  employee Employee
-    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   roleName String
 
@@ -776,8 +798,8 @@ model EmployeeRole {
   updatedAt DateTime @updatedAt
 
   @@index([employeeId])
-
 }
+
 //============================================================
 // SECTION 06
 // TEACHER MODULE
@@ -799,13 +821,11 @@ model EmployeeRole {
 // • AI Analytics
 //============================================================
 
-
 //============================================================
 // TEACHER
 //============================================================
 
 model Teacher {
-
   //----------------------------------------------------------
   // PRIMARY KEY
   //----------------------------------------------------------
@@ -818,8 +838,7 @@ model Teacher {
 
   employeeId String @unique
 
-  employee Employee
-    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   //----------------------------------------------------------
   // SCHOOL
@@ -827,8 +846,7 @@ model Teacher {
 
   schoolId String
 
-  school School
-    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //----------------------------------------------------------
   // TEACHER DETAILS
@@ -888,18 +906,18 @@ model Teacher {
 
   updatedAt DateTime @updatedAt
 
+  SubjectTeacher       SubjectTeacher[]
+  AcademicClassTeacher AcademicClassTeacher[]
+  Homework             Homework[]
+  StudyMaterial        StudyMaterial[]
+
   //----------------------------------------------------------
   // INDEXES
   //----------------------------------------------------------
-
   @@unique([schoolId, teacherCode])
-
   @@index([schoolId])
-
   @@index([teacherStatus])
-
 }
-
 
 //============================================================
 // TEACHER SUBJECT
@@ -917,13 +935,11 @@ model Teacher {
 //============================================================
 
 model TeacherSubject {
-
   id String @id @default(cuid())
 
   teacherId String
 
-  teacher Teacher
-    @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
 
   subjectName String
 
@@ -932,9 +948,7 @@ model TeacherSubject {
   createdAt DateTime @default(now())
 
   @@index([teacherId])
-
 }
-
 
 //============================================================
 // CLASS TEACHER
@@ -946,13 +960,11 @@ model TeacherSubject {
 //============================================================
 
 model ClassTeacher {
-
   id String @id @default(cuid())
 
   teacherId String
 
-  teacher Teacher
-    @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
 
   academicYear String
 
@@ -962,9 +974,14 @@ model ClassTeacher {
 
   createdAt DateTime @default(now())
 
-  @@index([teacherId])
+  AcademicClass     AcademicClass?   @relation(fields: [academicClassId], references: [id])
+  academicClassId   String?
+  AcademicSection   AcademicSection? @relation(fields: [academicSectionId], references: [id])
+  academicSectionId String?
 
+  @@index([teacherId])
 }
+
 //============================================================
 // SECTION 07
 // STUDENT MODULE
@@ -993,13 +1010,11 @@ model ClassTeacher {
 //
 //============================================================
 
-
 //============================================================
 // STUDENT
 //============================================================
 
 model Student {
-
   //----------------------------------------------------------
   // PRIMARY KEY
   //----------------------------------------------------------
@@ -1012,8 +1027,7 @@ model Student {
 
   schoolId String
 
-  school School
-    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //----------------------------------------------------------
   // LOGIN ACCOUNT
@@ -1021,8 +1035,7 @@ model Student {
 
   userId String? @unique
 
-  user User?
-    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   //----------------------------------------------------------
   // STUDENT IDENTITY
@@ -1100,36 +1113,41 @@ model Student {
 
   updatedAt DateTime @updatedAt
 
+  StudentAttendance          StudentAttendance[]
+  StudentPeriodAttendance    StudentPeriodAttendance[]
+  StudentResult              StudentResult[]
+  ReportCard                 ReportCard[]
+  StudentFee                 StudentFee[]
+  HomeworkSubmission         HomeworkSubmission[]
+  BookIssue                  BookIssue[]
+  StudentLedger              StudentLedger[]
+  StudentTransportAllocation StudentTransportAllocation[]
+  StudentHostelAllocation    StudentHostelAllocation[]
+  HostelVisitor              HostelVisitor[]
+  HostelLeave                HostelLeave[]
+  StudentStoreInvoice        StudentStoreInvoice[]
+
   //----------------------------------------------------------
   // INDEXES
   //----------------------------------------------------------
-
   @@unique([schoolId, admissionNo])
-
   @@index([schoolId])
-
   @@index([isActive])
-
   @@index([isDeleted])
-
 }
-
-
 
 //============================================================
 // PARENT
 //============================================================
 
 model Parent {
-
   id String @id @default(cuid())
 
   //----------------------------------------------------------
 
   schoolId String
 
-  school School
-    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //----------------------------------------------------------
   // LOGIN
@@ -1137,8 +1155,7 @@ model Parent {
 
   userId String? @unique
 
-  user User?
-    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   //----------------------------------------------------------
   // DETAILS
@@ -1173,10 +1190,7 @@ model Parent {
   updatedAt DateTime @updatedAt
 
   @@index([schoolId])
-
 }
-
-
 
 //============================================================
 // STUDENT PARENT
@@ -1190,7 +1204,6 @@ model Parent {
 //============================================================
 
 model StudentParent {
-
   id String @id @default(cuid())
 
   studentId String
@@ -1203,19 +1216,13 @@ model StudentParent {
 
   //----------------------------------------------------------
 
-  student Student
-    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
-  parent Parent
-    @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  parent Parent @relation(fields: [parentId], references: [id], onDelete: Cascade)
 
   //----------------------------------------------------------
-
   @@unique([studentId, parentId])
-
 }
-
-
 
 //============================================================
 // STUDENT ENROLLMENT
@@ -1234,22 +1241,19 @@ model StudentParent {
 //============================================================
 
 model StudentEnrollment {
-
   id String @id @default(cuid())
 
   //----------------------------------------------------------
 
   studentId String
 
-  student Student
-    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   //----------------------------------------------------------
 
   academicYearId String
 
-  academicYear AcademicYear
-    @relation(fields: [academicYearId], references: [id])
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id])
 
   //----------------------------------------------------------
   // NEW RELATIONS
@@ -1257,13 +1261,11 @@ model StudentEnrollment {
 
   classId String
 
-  academicClass AcademicClass
-    @relation(fields: [classId], references: [id])
+  academicClass AcademicClass @relation(fields: [classId], references: [id])
 
   sectionId String?
 
-  academicSection AcademicSection?
-    @relation(fields: [sectionId], references: [id])
+  academicSection AcademicSection? @relation(fields: [sectionId], references: [id])
 
   //----------------------------------------------------------
 
@@ -1283,17 +1285,15 @@ model StudentEnrollment {
 
   updatedAt DateTime @updatedAt
 
+  StudentAttendance StudentAttendance[]
+
   //----------------------------------------------------------
-
   @@unique([studentId, academicYearId])
-
   @@index([academicYearId])
-
   @@index([classId])
-
   @@index([sectionId])
-
 }
+
 //============================================================
 // SECTION 08
 // ACADEMIC STRUCTURE MODULE
@@ -1326,8 +1326,6 @@ model StudentEnrollment {
 //
 //============================================================
 
-
-
 //============================================================
 // ACADEMIC CLASS
 //============================================================
@@ -1345,7 +1343,6 @@ model StudentEnrollment {
 //============================================================
 
 model AcademicClass {
-
   //----------------------------------------------------------
   // PRIMARY KEY
   //----------------------------------------------------------
@@ -1358,8 +1355,7 @@ model AcademicClass {
 
   schoolId String
 
-  school School
-    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //----------------------------------------------------------
   // CLASS DETAILS
@@ -1397,17 +1393,19 @@ model AcademicClass {
 
   updatedAt DateTime @updatedAt
 
+  AcademicClassTeacher AcademicClassTeacher[]
+  ClassTimetable       ClassTimetable[]
+  ExamSchedule         ExamSchedule[]
+  FeeStructure         FeeStructure[]
+  Homework             Homework[]
+  StudyMaterial        StudyMaterial[]
+
   //----------------------------------------------------------
   // INDEXES
   //----------------------------------------------------------
-
   @@unique([schoolId, classCode])
-
   @@index([schoolId])
-
 }
-
-
 
 //============================================================
 // ACADEMIC SECTION
@@ -1422,22 +1420,19 @@ model AcademicClass {
 //============================================================
 
 model AcademicSection {
-
   id String @id @default(cuid())
 
   //----------------------------------------------------------
 
   schoolId String
 
-  school School
-    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //----------------------------------------------------------
 
   classId String
 
-  academicClass AcademicClass
-    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  academicClass AcademicClass @relation(fields: [classId], references: [id], onDelete: Cascade)
 
   //----------------------------------------------------------
 
@@ -1463,30 +1458,29 @@ model AcademicSection {
 
   updatedAt DateTime @updatedAt
 
+  AcademicClassTeacher AcademicClassTeacher[]
+  ClassTimetable       ClassTimetable[]
+  ExamSchedule         ExamSchedule[]
+  Homework             Homework[]
+  StudyMaterial        StudyMaterial[]
+
   //----------------------------------------------------------
-
   @@unique([classId, sectionName])
-
   @@index([schoolId])
-
 }
-
-
 
 //============================================================
 // SUBJECT
 //============================================================
 
 model Subject {
-
   id String @id @default(cuid())
 
   //----------------------------------------------------------
 
   schoolId String
 
-  school School
-    @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //----------------------------------------------------------
 
@@ -1516,13 +1510,14 @@ model Subject {
 
   updatedAt DateTime @updatedAt
 
+  ExamSchedule  ExamSchedule[]
+  StudentResult StudentResult[]
+  Homework      Homework[]
+  StudyMaterial StudyMaterial[]
+
   //----------------------------------------------------------
-
   @@unique([schoolId, subjectCode])
-
 }
-
-
 
 //============================================================
 // CLASS SUBJECT
@@ -1541,22 +1536,19 @@ model Subject {
 //============================================================
 
 model ClassSubject {
-
   id String @id @default(cuid())
 
   //----------------------------------------------------------
 
   classId String
 
-  academicClass AcademicClass
-    @relation(fields:[classId], references:[id], onDelete:Cascade)
+  academicClass AcademicClass @relation(fields: [classId], references: [id], onDelete: Cascade)
 
   //----------------------------------------------------------
 
   subjectId String
 
-  subject Subject
-    @relation(fields:[subjectId], references:[id], onDelete:Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
 
   //----------------------------------------------------------
 
@@ -1575,12 +1567,8 @@ model ClassSubject {
   updatedAt DateTime @updatedAt
 
   //----------------------------------------------------------
-
   @@unique([classId, subjectId])
-
 }
-
-
 
 //============================================================
 // SUBJECT TEACHER
@@ -1592,7 +1580,6 @@ model ClassSubject {
 //============================================================
 
 model SubjectTeacher {
-
   id String @id @default(cuid())
 
   //----------------------------------------------------------
@@ -1603,36 +1590,31 @@ model SubjectTeacher {
 
   teacherId String
 
-  teacher Teacher
-    @relation(fields:[teacherId], references:[id])
+  teacher Teacher @relation(fields: [teacherId], references: [id])
 
   //----------------------------------------------------------
 
   subjectId String
 
-  subject Subject
-    @relation(fields:[subjectId], references:[id])
+  subject Subject @relation(fields: [subjectId], references: [id])
 
   //----------------------------------------------------------
 
   classId String
 
-  academicClass AcademicClass
-    @relation(fields:[classId], references:[id])
+  academicClass AcademicClass @relation(fields: [classId], references: [id])
 
   //----------------------------------------------------------
 
   sectionId String?
 
-  academicSection AcademicSection?
-    @relation(fields:[sectionId], references:[id])
+  academicSection AcademicSection? @relation(fields: [sectionId], references: [id])
 
   //----------------------------------------------------------
 
   academicYearId String
 
-  academicYear AcademicYear
-    @relation(fields:[academicYearId], references:[id])
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id])
 
   //----------------------------------------------------------
 
@@ -1640,9 +1622,8 @@ model SubjectTeacher {
 
   updatedAt DateTime @updatedAt
 
+  ClassTimetable ClassTimetable[]
 }
-
-
 
 //============================================================
 // CLASS TEACHER
@@ -1653,37 +1634,32 @@ model SubjectTeacher {
 //
 //============================================================
 
-model ClassTeacher {
-
+model AcademicClassTeacher {
   id String @id @default(cuid())
 
   //----------------------------------------------------------
 
   teacherId String
 
-  teacher Teacher
-    @relation(fields:[teacherId], references:[id])
+  teacher Teacher @relation(fields: [teacherId], references: [id])
 
   //----------------------------------------------------------
 
   classId String
 
-  academicClass AcademicClass
-    @relation(fields:[classId], references:[id])
+  academicClass AcademicClass @relation(fields: [classId], references: [id])
 
   //----------------------------------------------------------
 
   sectionId String
 
-  academicSection AcademicSection
-    @relation(fields:[sectionId], references:[id])
+  academicSection AcademicSection @relation(fields: [sectionId], references: [id])
 
   //----------------------------------------------------------
 
   academicYearId String
 
-  academicYear AcademicYear
-    @relation(fields:[academicYearId], references:[id])
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id])
 
   //----------------------------------------------------------
 
@@ -1694,10 +1670,7 @@ model ClassTeacher {
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
-
 }
-
-
 
 //============================================================
 // HOUSE
@@ -1719,15 +1692,13 @@ model ClassTeacher {
 //============================================================
 
 model House {
-
   id String @id @default(cuid())
 
   //----------------------------------------------------------
 
   schoolId String
 
-  school School
-    @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //----------------------------------------------------------
 
@@ -1752,10 +1723,9 @@ model House {
   updatedAt DateTime @updatedAt
 
   //----------------------------------------------------------
-
   @@unique([schoolId, houseCode])
-
 }
+
 //============================================================
 // SECTION 09
 // TIMETABLE & SCHEDULING MODULE
@@ -1783,20 +1753,16 @@ model House {
 //
 //============================================================
 
-
-
 //============================================================
 // WORKING DAY
 //============================================================
 
 model WorkingDay {
-
   id String @id @default(cuid())
 
   schoolId String
 
-  school School
-    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   dayName String
 
@@ -1808,24 +1774,21 @@ model WorkingDay {
 
   updatedAt DateTime @updatedAt
 
+  ClassTimetable ClassTimetable[]
+
   @@unique([schoolId, dayNumber])
-
 }
-
-
 
 //============================================================
 // SCHOOL PERIOD
 //============================================================
 
 model SchoolPeriod {
-
   id String @id @default(cuid())
 
   schoolId String
 
-  school School
-    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   periodNumber Int
 
@@ -1841,54 +1804,45 @@ model SchoolPeriod {
 
   updatedAt DateTime @updatedAt
 
+  ClassTimetable ClassTimetable[]
+
   @@unique([schoolId, periodNumber])
-
 }
-
-
 
 //============================================================
 // CLASS TIMETABLE
 //============================================================
 
 model ClassTimetable {
-
   id String @id @default(cuid())
 
   schoolId String
 
-  school School
-    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   academicYearId String
 
-  academicYear AcademicYear
-    @relation(fields: [academicYearId], references: [id])
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id])
 
   classId String
 
-  academicClass AcademicClass
-    @relation(fields: [classId], references: [id])
+  academicClass AcademicClass @relation(fields: [classId], references: [id])
 
   sectionId String?
 
-  academicSection AcademicSection?
-    @relation(fields: [sectionId], references: [id])
+  academicSection AcademicSection? @relation(fields: [sectionId], references: [id])
 
   workingDayId String
 
-  workingDay WorkingDay
-    @relation(fields: [workingDayId], references: [id])
+  workingDay WorkingDay @relation(fields: [workingDayId], references: [id])
 
   periodId String
 
-  period SchoolPeriod
-    @relation(fields: [periodId], references: [id])
+  period SchoolPeriod @relation(fields: [periodId], references: [id])
 
   subjectTeacherId String
 
-  subjectTeacher SubjectTeacher
-    @relation(fields: [subjectTeacherId], references: [id])
+  subjectTeacher SubjectTeacher @relation(fields: [subjectTeacherId], references: [id])
 
   roomNumber String?
 
@@ -1896,13 +1850,13 @@ model ClassTimetable {
 
   updatedAt DateTime @updatedAt
 
+  StudentPeriodAttendance StudentPeriodAttendance[]
+
   @@index([schoolId])
-
   @@index([classId])
-
   @@index([sectionId])
-
-}//============================================================
+}
+//============================================================
 // SECTION 10
 // ATTENDANCE MODULE
 //============================================================
@@ -1925,14 +1879,11 @@ model ClassTimetable {
 //
 //============================================================
 
-
-
 //============================================================
 // ATTENDANCE STATUS
 //============================================================
 
 enum AttendanceStatus {
-
   PRESENT
 
   ABSENT
@@ -1944,17 +1895,13 @@ enum AttendanceStatus {
   LEAVE
 
   HOLIDAY
-
 }
-
-
 
 //============================================================
 // STUDENT DAILY ATTENDANCE
 //============================================================
 
 model StudentAttendance {
-
   //----------------------------------------------------------
 
   id String @id @default(cuid())
@@ -1965,8 +1912,7 @@ model StudentAttendance {
 
   schoolId String
 
-  school School
-    @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //----------------------------------------------------------
   // STUDENT
@@ -1974,8 +1920,7 @@ model StudentAttendance {
 
   studentId String
 
-  student Student
-    @relation(fields:[studentId], references:[id], onDelete:Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   //----------------------------------------------------------
   // ENROLLMENT
@@ -1983,8 +1928,7 @@ model StudentAttendance {
 
   enrollmentId String
 
-  enrollment StudentEnrollment
-    @relation(fields:[enrollmentId], references:[id])
+  enrollment StudentEnrollment @relation(fields: [enrollmentId], references: [id])
 
   //----------------------------------------------------------
   // DATE
@@ -2019,36 +1963,28 @@ model StudentAttendance {
   updatedAt DateTime @updatedAt
 
   //----------------------------------------------------------
-
   @@unique([studentId, attendanceDate])
-
   @@index([attendanceDate])
-
 }
-
-
 
 //============================================================
 // PERIOD ATTENDANCE
 //============================================================
 
 model StudentPeriodAttendance {
-
   id String @id @default(cuid())
 
   //----------------------------------------------------------
 
   timetableId String
 
-  timetable ClassTimetable
-    @relation(fields:[timetableId], references:[id])
+  timetable ClassTimetable @relation(fields: [timetableId], references: [id])
 
   //----------------------------------------------------------
 
   studentId String
 
-  student Student
-    @relation(fields:[studentId], references:[id])
+  student Student @relation(fields: [studentId], references: [id])
 
   //----------------------------------------------------------
 
@@ -2065,25 +2001,20 @@ model StudentPeriodAttendance {
   //----------------------------------------------------------
 
   createdAt DateTime @default(now())
-
 }
-
-
 
 //============================================================
 // EMPLOYEE ATTENDANCE
 //============================================================
 
 model EmployeeAttendance {
-
   id String @id @default(cuid())
 
   //----------------------------------------------------------
 
   employeeId String
 
-  employee Employee
-    @relation(fields:[employeeId], references:[id])
+  employee Employee @relation(fields: [employeeId], references: [id])
 
   //----------------------------------------------------------
 
@@ -2114,10 +2045,7 @@ model EmployeeAttendance {
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
-
 }
-
-
 
 //============================================================
 // ATTENDANCE DEVICE LOG
@@ -2134,7 +2062,6 @@ model EmployeeAttendance {
 //============================================================
 
 model AttendanceDeviceLog {
-
   id String @id @default(cuid())
 
   schoolId String
@@ -2170,8 +2097,8 @@ model AttendanceDeviceLog {
   //----------------------------------------------------------
 
   createdAt DateTime @default(now())
-
 }
+
 //============================================================
 // SECTION 11
 // EXAMINATION MANAGEMENT MODULE
@@ -2193,29 +2120,24 @@ model AttendanceDeviceLog {
 //
 //============================================================
 
-
-
 //============================================================
 // EXAM
 //============================================================
 
 model Exam {
-
   id String @id @default(cuid())
 
   //----------------------------------------------------------
 
   schoolId String
 
-  school School
-    @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //----------------------------------------------------------
 
   academicYearId String
 
-  academicYear AcademicYear
-    @relation(fields:[academicYearId], references:[id])
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id])
 
   //----------------------------------------------------------
 
@@ -2243,47 +2165,41 @@ model Exam {
 
   updatedAt DateTime @updatedAt
 
+  ReportCard ReportCard[]
+
   @@unique([schoolId, examCode])
-
 }
-
-
 
 //============================================================
 // EXAM SCHEDULE
 //============================================================
 
 model ExamSchedule {
-
   id String @id @default(cuid())
 
   //----------------------------------------------------------
 
   examId String
 
-  exam Exam
-    @relation(fields:[examId], references:[id], onDelete:Cascade)
+  exam Exam @relation(fields: [examId], references: [id], onDelete: Cascade)
 
   //----------------------------------------------------------
 
   classId String
 
-  academicClass AcademicClass
-    @relation(fields:[classId], references:[id])
+  academicClass AcademicClass @relation(fields: [classId], references: [id])
 
   //----------------------------------------------------------
 
   sectionId String?
 
-  academicSection AcademicSection?
-    @relation(fields:[sectionId], references:[id])
+  academicSection AcademicSection? @relation(fields: [sectionId], references: [id])
 
   //----------------------------------------------------------
 
   subjectId String
 
-  subject Subject
-    @relation(fields:[subjectId], references:[id])
+  subject Subject @relation(fields: [subjectId], references: [id])
 
   //----------------------------------------------------------
 
@@ -2302,39 +2218,32 @@ model ExamSchedule {
   //----------------------------------------------------------
 
   createdAt DateTime @default(now())
-
 }
-
-
 
 //============================================================
 // STUDENT RESULT
 //============================================================
 
 model StudentResult {
-
   id String @id @default(cuid())
 
   //----------------------------------------------------------
 
   examId String
 
-  exam Exam
-    @relation(fields:[examId], references:[id])
+  exam Exam @relation(fields: [examId], references: [id])
 
   //----------------------------------------------------------
 
   studentId String
 
-  student Student
-    @relation(fields:[studentId], references:[id])
+  student Student @relation(fields: [studentId], references: [id])
 
   //----------------------------------------------------------
 
   subjectId String
 
-  subject Subject
-    @relation(fields:[subjectId], references:[id])
+  subject Subject @relation(fields: [subjectId], references: [id])
 
   //----------------------------------------------------------
 
@@ -2355,32 +2264,26 @@ model StudentResult {
   updatedAt DateTime @updatedAt
 
   @@unique([examId, studentId, subjectId])
-
 }
-
-
 
 //============================================================
 // REPORT CARD
 //============================================================
 
 model ReportCard {
-
   id String @id @default(cuid())
 
   //----------------------------------------------------------
 
   examId String
 
-  exam Exam
-    @relation(fields:[examId], references:[id])
+  exam Exam @relation(fields: [examId], references: [id])
 
   //----------------------------------------------------------
 
   studentId String
 
-  student Student
-    @relation(fields:[studentId], references:[id])
+  student Student @relation(fields: [studentId], references: [id])
 
   //----------------------------------------------------------
 
@@ -2407,8 +2310,8 @@ model ReportCard {
   updatedAt DateTime @updatedAt
 
   @@unique([examId, studentId])
-
 }
+
 //============================================================
 // SECTION 12
 // FEE MANAGEMENT MODULE
@@ -2434,22 +2337,18 @@ model ReportCard {
 //
 //============================================================
 
-
-
 //============================================================
 // FEE HEAD
 //============================================================
 
 model FeeHead {
-
   id String @id @default(cuid())
 
   //----------------------------------------------------------
 
   schoolId String
 
-  school School
-    @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //----------------------------------------------------------
 
@@ -2469,47 +2368,41 @@ model FeeHead {
 
   updatedAt DateTime @updatedAt
 
+  FeeStructure FeeStructure[]
+
   @@unique([schoolId, feeHeadCode])
-
 }
-
-
 
 //============================================================
 // FEE STRUCTURE
 //============================================================
 
 model FeeStructure {
-
   id String @id @default(cuid())
 
   //----------------------------------------------------------
 
   schoolId String
 
-  school School
-    @relation(fields:[schoolId], references:[id])
+  school School @relation(fields: [schoolId], references: [id])
 
   //----------------------------------------------------------
 
   academicYearId String
 
-  academicYear AcademicYear
-    @relation(fields:[academicYearId], references:[id])
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id])
 
   //----------------------------------------------------------
 
   classId String
 
-  academicClass AcademicClass
-    @relation(fields:[classId], references:[id])
+  academicClass AcademicClass @relation(fields: [classId], references: [id])
 
   //----------------------------------------------------------
 
   feeHeadId String
 
-  feeHead FeeHead
-    @relation(fields:[feeHeadId], references:[id])
+  feeHead FeeHead @relation(fields: [feeHeadId], references: [id])
 
   //----------------------------------------------------------
 
@@ -2519,31 +2412,27 @@ model FeeStructure {
 
   createdAt DateTime @default(now())
 
+  StudentFee StudentFee[]
 }
-
-
 
 //============================================================
 // STUDENT FEE
 //============================================================
 
 model StudentFee {
-
   id String @id @default(cuid())
 
   //----------------------------------------------------------
 
   studentId String
 
-  student Student
-    @relation(fields:[studentId], references:[id])
+  student Student @relation(fields: [studentId], references: [id])
 
   //----------------------------------------------------------
 
   feeStructureId String
 
-  feeStructure FeeStructure
-    @relation(fields:[feeStructureId], references:[id])
+  feeStructure FeeStructure @relation(fields: [feeStructureId], references: [id])
 
   //----------------------------------------------------------
 
@@ -2570,25 +2459,20 @@ model StudentFee {
   //----------------------------------------------------------
 
   createdAt DateTime @default(now())
-
 }
-
-
 
 //============================================================
 // FEE PAYMENT
 //============================================================
 
 model FeePayment {
-
   id String @id @default(cuid())
 
   //----------------------------------------------------------
 
   studentFeeId String
 
-  studentFee StudentFee
-    @relation(fields:[studentFeeId], references:[id])
+  studentFee StudentFee @relation(fields: [studentFeeId], references: [id])
 
   //----------------------------------------------------------
 
@@ -2607,8 +2491,8 @@ model FeePayment {
   //----------------------------------------------------------
 
   createdAt DateTime @default(now())
-
 }
+
 //============================================================
 // SECTION 13
 // HOMEWORK & ASSIGNMENT MANAGEMENT
@@ -2634,14 +2518,11 @@ model FeePayment {
 //
 //============================================================
 
-
-
 //============================================================
 // HOMEWORK
 //============================================================
 
 model Homework {
-
   id String @id @default(cuid())
 
   //----------------------------------------------------------
@@ -2650,8 +2531,7 @@ model Homework {
 
   schoolId String
 
-  school School
-    @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //----------------------------------------------------------
   // ACADEMIC YEAR
@@ -2659,8 +2539,7 @@ model Homework {
 
   academicYearId String
 
-  academicYear AcademicYear
-    @relation(fields:[academicYearId], references:[id])
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id])
 
   //----------------------------------------------------------
   // CLASS
@@ -2668,8 +2547,7 @@ model Homework {
 
   classId String
 
-  academicClass AcademicClass
-    @relation(fields:[classId], references:[id])
+  academicClass AcademicClass @relation(fields: [classId], references: [id])
 
   //----------------------------------------------------------
   // SECTION
@@ -2677,8 +2555,7 @@ model Homework {
 
   sectionId String?
 
-  academicSection AcademicSection?
-    @relation(fields:[sectionId], references:[id])
+  academicSection AcademicSection? @relation(fields: [sectionId], references: [id])
 
   //----------------------------------------------------------
   // SUBJECT
@@ -2686,8 +2563,7 @@ model Homework {
 
   subjectId String
 
-  subject Subject
-    @relation(fields:[subjectId], references:[id])
+  subject Subject @relation(fields: [subjectId], references: [id])
 
   //----------------------------------------------------------
   // TEACHER
@@ -2695,8 +2571,7 @@ model Homework {
 
   teacherId String
 
-  teacher Teacher
-    @relation(fields:[teacherId], references:[id])
+  teacher Teacher @relation(fields: [teacherId], references: [id])
 
   //----------------------------------------------------------
   // DETAILS
@@ -2725,32 +2600,26 @@ model Homework {
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
-
 }
-
-
 
 //============================================================
 // HOMEWORK SUBMISSION
 //============================================================
 
 model HomeworkSubmission {
-
   id String @id @default(cuid())
 
   //----------------------------------------------------------
 
   homeworkId String
 
-  homework Homework
-    @relation(fields:[homeworkId], references:[id], onDelete:Cascade)
+  homework Homework @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
 
   //----------------------------------------------------------
 
   studentId String
 
-  student Student
-    @relation(fields:[studentId], references:[id])
+  student Student @relation(fields: [studentId], references: [id])
 
   //----------------------------------------------------------
 
@@ -2769,53 +2638,44 @@ model HomeworkSubmission {
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
-
 }
-
-
 
 //============================================================
 // STUDY MATERIAL
 //============================================================
 
 model StudyMaterial {
-
   id String @id @default(cuid())
 
   //----------------------------------------------------------
 
   schoolId String
 
-  school School
-    @relation(fields:[schoolId], references:[id])
+  school School @relation(fields: [schoolId], references: [id])
 
   //----------------------------------------------------------
 
   classId String
 
-  academicClass AcademicClass
-    @relation(fields:[classId], references:[id])
+  academicClass AcademicClass @relation(fields: [classId], references: [id])
 
   //----------------------------------------------------------
 
   sectionId String?
 
-  academicSection AcademicSection?
-    @relation(fields:[sectionId], references:[id])
+  academicSection AcademicSection? @relation(fields: [sectionId], references: [id])
 
   //----------------------------------------------------------
 
   subjectId String
 
-  subject Subject
-    @relation(fields:[subjectId], references:[id])
+  subject Subject @relation(fields: [subjectId], references: [id])
 
   //----------------------------------------------------------
 
   teacherId String
 
-  teacher Teacher
-    @relation(fields:[teacherId], references:[id])
+  teacher Teacher @relation(fields: [teacherId], references: [id])
 
   //----------------------------------------------------------
 
@@ -2834,8 +2694,8 @@ model StudyMaterial {
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
-
 }
+
 //============================================================
 // SECTION 14
 // NOTIFICATION & COMMUNICATION MODULE
@@ -2859,14 +2719,11 @@ model StudyMaterial {
 //
 //============================================================
 
-
-
 //============================================================
 // NOTIFICATION
 //============================================================
 
 model Notification {
-
   //----------------------------------------------------------
 
   id String @id @default(cuid())
@@ -2875,8 +2732,7 @@ model Notification {
 
   schoolId String
 
-  school School
-      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //----------------------------------------------------------
 
@@ -2921,32 +2777,26 @@ model Notification {
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
-
 }
-
-
 
 //============================================================
 // NOTIFICATION DELIVERY
 //============================================================
 
 model NotificationDelivery {
-
   id String @id @default(cuid())
 
   //----------------------------------------------------------
 
   notificationId String
 
-  notification Notification
-      @relation(fields:[notificationId], references:[id], onDelete:Cascade)
+  notification Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
 
   //----------------------------------------------------------
 
   userId String?
 
-  user User?
-      @relation(fields:[userId], references:[id])
+  user User? @relation(fields: [userId], references: [id])
 
   //----------------------------------------------------------
 
@@ -2967,25 +2817,20 @@ model NotificationDelivery {
   //----------------------------------------------------------
 
   createdAt DateTime @default(now())
-
 }
-
-
 
 //============================================================
 // ANNOUNCEMENT
 //============================================================
 
 model Announcement {
-
   id String @id @default(cuid())
 
   //----------------------------------------------------------
 
   schoolId String
 
-  school School
-      @relation(fields:[schoolId], references:[id])
+  school School @relation(fields: [schoolId], references: [id])
 
   //----------------------------------------------------------
 
@@ -3012,10 +2857,7 @@ model Announcement {
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
-
 }
-
-
 
 //============================================================
 // MESSAGE
@@ -3036,15 +2878,13 @@ model Announcement {
 //============================================================
 
 model Message {
-
   id String @id @default(cuid())
 
   //----------------------------------------------------------
 
   schoolId String
 
-  school School
-      @relation(fields:[schoolId], references:[id])
+  school School @relation(fields: [schoolId], references: [id])
 
   //----------------------------------------------------------
 
@@ -3071,8 +2911,8 @@ model Message {
   //----------------------------------------------------------
 
   createdAt DateTime @default(now())
-
 }
+
 //============================================================
 // SECTION 15
 // LIBRARY MANAGEMENT MODULE
@@ -3096,20 +2936,16 @@ model Message {
 //
 //============================================================
 
-
-
 //============================================================
 // BOOK CATEGORY
 //============================================================
 
 model BookCategory {
-
   id String @id @default(cuid())
 
   schoolId String
 
-  school School
-      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   categoryName String
 
@@ -3126,28 +2962,22 @@ model BookCategory {
   updatedAt DateTime @updatedAt
 
   @@unique([schoolId, categoryCode])
-
 }
-
-
 
 //============================================================
 // BOOK
 //============================================================
 
 model Book {
-
   id String @id @default(cuid())
 
   schoolId String
 
-  school School
-      @relation(fields:[schoolId], references:[id])
+  school School @relation(fields: [schoolId], references: [id])
 
   categoryId String
 
-  category BookCategory
-      @relation(fields:[categoryId], references:[id])
+  category BookCategory @relation(fields: [categoryId], references: [id])
 
   title String
 
@@ -3178,38 +3008,30 @@ model Book {
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
-
 }
-
-
 
 //============================================================
 // BOOK ISSUE
 //============================================================
 
 model BookIssue {
-
   id String @id @default(cuid())
 
   schoolId String
 
-  school School
-      @relation(fields:[schoolId], references:[id])
+  school School @relation(fields: [schoolId], references: [id])
 
   bookId String
 
-  book Book
-      @relation(fields:[bookId], references:[id])
+  book Book @relation(fields: [bookId], references: [id])
 
   studentId String?
 
-  student Student?
-      @relation(fields:[studentId], references:[id])
+  student Student? @relation(fields: [studentId], references: [id])
 
   employeeId String?
 
-  employee Employee?
-      @relation(fields:[employeeId], references:[id])
+  employee Employee? @relation(fields: [employeeId], references: [id])
 
   issueDate DateTime
 
@@ -3224,8 +3046,8 @@ model BookIssue {
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
-
-}//=====================================================================
+}
+//=====================================================================
 // SECTION 16
 // STUDENT FINANCIAL LEDGER (ERP FINANCIAL CORE)
 //=====================================================================
@@ -3265,14 +3087,11 @@ model BookIssue {
 //
 //=====================================================================
 
-
-
 //=====================================================================
 // TRANSACTION TYPE
 //=====================================================================
 
 enum LedgerTransactionType {
-
   // Academic
 
   ADMISSION_FEE
@@ -3310,17 +3129,13 @@ enum LedgerTransactionType {
   FINE
 
   OTHER
-
 }
-
-
 
 //=====================================================================
 // PAYMENT MODE
 //=====================================================================
 
-enum PaymentMode {
-
+enum FEEPaymentMode {
   CASH
 
   CHEQUE
@@ -3334,17 +3149,13 @@ enum PaymentMode {
   NET_BANKING
 
   ONLINE_GATEWAY
-
 }
-
-
 
 //=====================================================================
 // STUDENT LEDGER
 //=====================================================================
 
 model StudentLedger {
-
   //------------------------------------------------------------------
 
   id String @id @default(cuid())
@@ -3355,8 +3166,7 @@ model StudentLedger {
 
   schoolId String
 
-  school School
-      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //------------------------------------------------------------------
   // STUDENT
@@ -3364,8 +3174,7 @@ model StudentLedger {
 
   studentId String
 
-  student Student
-      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   //------------------------------------------------------------------
   // ACADEMIC YEAR
@@ -3373,8 +3182,7 @@ model StudentLedger {
 
   academicYearId String
 
-  academicYear AcademicYear
-      @relation(fields: [academicYearId], references: [id])
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id])
 
   //------------------------------------------------------------------
   // TRANSACTION
@@ -3439,24 +3247,14 @@ model StudentLedger {
   updatedAt DateTime @updatedAt
 
   //------------------------------------------------------------------
-
   @@index([schoolId])
-
   @@index([studentId])
-
   @@index([academicYearId])
-
   @@index([transactionType])
-
   @@index([transactionDate])
-
   @@index([receiptNumber])
-
   @@index([invoiceNumber])
-
 }
-
-
 
 //=====================================================================
 // FUTURE RELATION NOTES
@@ -3547,14 +3345,11 @@ model StudentLedger {
 //
 //=====================================================================
 
-
-
 //=====================================================================
 // ENUMS
 //=====================================================================
 
 enum VehicleType {
-
   SCHOOL_BUS
 
   MINI_BUS
@@ -3562,11 +3357,9 @@ enum VehicleType {
   VAN
 
   CAR
-
 }
 
 enum VehicleStatus {
-
   ACTIVE
 
   UNDER_MAINTENANCE
@@ -3574,33 +3367,25 @@ enum VehicleStatus {
   INACTIVE
 
   SCRAPPED
-
 }
 
 enum RouteStatus {
-
   ACTIVE
 
   INACTIVE
-
 }
 
 enum StopStatus {
-
   ACTIVE
 
   INACTIVE
-
 }
-
-
 
 //=====================================================================
 // VEHICLE
 //=====================================================================
 
 model Vehicle {
-
   //---------------------------------------------------------
 
   id String @id @default(cuid())
@@ -3609,8 +3394,7 @@ model Vehicle {
 
   schoolId String
 
-  school School
-      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //---------------------------------------------------------
 
@@ -3662,34 +3446,28 @@ model Vehicle {
 
   updatedAt DateTime @updatedAt
 
+  VehicleMaintenance VehicleMaintenance[]
+
   //---------------------------------------------------------
-
   @@unique([schoolId, vehicleNumber])
-
   @@index([schoolId])
-
   @@index([status])
-
 }
-
-
 
 //=====================================================================
 // DRIVER
 //=====================================================================
 
 model Driver {
-
   id String @id @default(cuid())
 
   schoolId String
 
-  school School
-      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   employeeId String?
 
-  employee Employee?
+  employee Employee? @relation(fields: [employeeId], references: [id])
 
   licenseNumber String
 
@@ -3708,27 +3486,22 @@ model Driver {
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
-
 }
-
-
 
 //=====================================================================
 // CONDUCTOR
 //=====================================================================
 
 model Conductor {
-
   id String @id @default(cuid())
 
   schoolId String
 
-  school School
-      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   employeeId String?
 
-  employee Employee?
+  employee Employee? @relation(fields: [employeeId], references: [id])
 
   assignedVehicleId String?
 
@@ -3739,28 +3512,22 @@ model Conductor {
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
-
 }
-
-
 
 //=====================================================================
 // TRANSPORT ROUTE
 //=====================================================================
 
 model TransportRoute {
-
   id String @id @default(cuid())
 
   schoolId String
 
-  school School
-      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   vehicleId String
 
-  vehicle Vehicle
-      @relation(fields:[vehicleId], references:[id])
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
 
   routeName String
 
@@ -3770,8 +3537,7 @@ model TransportRoute {
 
   endLocation String
 
-  totalDistance Decimal
-      @db.Decimal(8,2)
+  totalDistance Decimal @db.Decimal(8, 2)
 
   estimatedTime Int?
 
@@ -3783,24 +3549,22 @@ model TransportRoute {
 
   updatedAt DateTime @updatedAt
 
+  TransportFeePlan           TransportFeePlan[]
+  StudentTransportAllocation StudentTransportAllocation[]
+
   @@unique([schoolId, routeCode])
-
 }
-
-
 
 //=====================================================================
 // TRANSPORT STOP
 //=====================================================================
 
 model TransportStop {
-
   id String @id @default(cuid())
 
   routeId String
 
-  route TransportRoute
-      @relation(fields:[routeId], references:[id], onDelete:Cascade)
+  route TransportRoute @relation(fields: [routeId], references: [id], onDelete: Cascade)
 
   stopName String
 
@@ -3814,7 +3578,9 @@ model TransportStop {
 
   createdAt DateTime @default(now())
 
+  StudentTransportAllocation StudentTransportAllocation[]
 }
+
 //=====================================================================
 // SECTION 17 (PART-B)
 // STUDENT TRANSPORT ALLOCATION & TRANSPORT FINANCE
@@ -3834,14 +3600,11 @@ model TransportStop {
 //
 //=====================================================================
 
-
-
 //=====================================================================
 // TRANSPORT FEE PLAN
 //=====================================================================
 
 model TransportFeePlan {
-
   //------------------------------------------------------------------
 
   id String @id @default(cuid())
@@ -3850,8 +3613,7 @@ model TransportFeePlan {
 
   schoolId String
 
-  school School
-      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //------------------------------------------------------------------
 
@@ -3859,16 +3621,13 @@ model TransportFeePlan {
 
   routeId String?
 
-  route TransportRoute?
-      @relation(fields:[routeId], references:[id])
+  route TransportRoute? @relation(fields: [routeId], references: [id])
 
   //------------------------------------------------------------------
 
-  monthlyFee Decimal
-      @db.Decimal(12,2)
+  monthlyFee Decimal @db.Decimal(12, 2)
 
-  yearlyFee Decimal?
-      @db.Decimal(12,2)
+  yearlyFee Decimal? @db.Decimal(12, 2)
 
   //------------------------------------------------------------------
 
@@ -3892,20 +3651,17 @@ model TransportFeePlan {
 
   updatedAt DateTime @updatedAt
 
+  StudentTransportAllocation StudentTransportAllocation[]
+
   //------------------------------------------------------------------
-
   @@index([schoolId])
-
 }
-
-
 
 //=====================================================================
 // STUDENT TRANSPORT ALLOCATION
 //=====================================================================
 
 model StudentTransportAllocation {
-
   //------------------------------------------------------------------
 
   id String @id @default(cuid())
@@ -3914,36 +3670,31 @@ model StudentTransportAllocation {
 
   schoolId String
 
-  school School
-      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //------------------------------------------------------------------
 
   studentId String
 
-  student Student
-      @relation(fields:[studentId], references:[id], onDelete:Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   //------------------------------------------------------------------
 
   routeId String
 
-  route TransportRoute
-      @relation(fields:[routeId], references:[id])
+  route TransportRoute @relation(fields: [routeId], references: [id])
 
   //------------------------------------------------------------------
 
   stopId String
 
-  stop TransportStop
-      @relation(fields:[stopId], references:[id])
+  stop TransportStop @relation(fields: [stopId], references: [id])
 
   //------------------------------------------------------------------
 
   feePlanId String?
 
-  feePlan TransportFeePlan?
-      @relation(fields:[feePlanId], references:[id])
+  feePlan TransportFeePlan? @relation(fields: [feePlanId], references: [id])
 
   //------------------------------------------------------------------
 
@@ -3972,23 +3723,16 @@ model StudentTransportAllocation {
   updatedAt DateTime @updatedAt
 
   //------------------------------------------------------------------
-
   @@index([studentId])
-
   @@index([routeId])
-
   @@index([schoolId])
-
 }
-
-
 
 //=====================================================================
 // VEHICLE MAINTENANCE
 //=====================================================================
 
 model VehicleMaintenance {
-
   //------------------------------------------------------------------
 
   id String @id @default(cuid())
@@ -3997,15 +3741,13 @@ model VehicleMaintenance {
 
   schoolId String
 
-  school School
-      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //------------------------------------------------------------------
 
   vehicleId String
 
-  vehicle Vehicle
-      @relation(fields:[vehicleId], references:[id])
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
 
   //------------------------------------------------------------------
 
@@ -4027,9 +3769,7 @@ model VehicleMaintenance {
 
   //------------------------------------------------------------------
 
-  maintenanceCost Decimal
-      @default(0.00)
-      @db.Decimal(12,2)
+  maintenanceCost Decimal @default(0.00) @db.Decimal(12, 2)
 
   //------------------------------------------------------------------
 
@@ -4044,10 +3784,7 @@ model VehicleMaintenance {
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
-
 }
-
-
 
 //=====================================================================
 // FUTURE READY FEATURES
@@ -4098,70 +3835,50 @@ model VehicleMaintenance {
 //
 //=====================================================================
 
-
-
 //=====================================================================
 // ENUMS
 //=====================================================================
 
 enum HostelStatus {
-
   ACTIVE
 
   INACTIVE
-
 }
 
-
-
 enum RoomStatus {
-
   AVAILABLE
 
   OCCUPIED
 
   MAINTENANCE
-
 }
 
-
-
 enum BedStatus {
-
   AVAILABLE
 
   OCCUPIED
 
   RESERVED
-
 }
 
-
-
 enum VisitorStatus {
-
   PENDING
 
   APPROVED
 
   REJECTED
-
 }
-
-
 
 //=====================================================================
 // HOSTEL
 //=====================================================================
 
 model Hostel {
-
   id String @id @default(cuid())
 
   schoolId String
 
-  school School
-      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   hostelName String
 
@@ -4193,24 +3910,23 @@ model Hostel {
 
   updatedAt DateTime @updatedAt
 
+  HostelFeePlan           HostelFeePlan[]
+  StudentHostelAllocation StudentHostelAllocation[]
+  HostelWarden            HostelWarden[]
+
   @@unique([schoolId, hostelCode])
-
 }
-
-
 
 //=====================================================================
 // HOSTEL BLOCK
 //=====================================================================
 
 model HostelBlock {
-
   id String @id @default(cuid())
 
   hostelId String
 
-  hostel Hostel
-      @relation(fields:[hostelId], references:[id], onDelete:Cascade)
+  hostel Hostel @relation(fields: [hostelId], references: [id], onDelete: Cascade)
 
   blockName String
 
@@ -4219,23 +3935,18 @@ model HostelBlock {
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
-
 }
-
-
 
 //=====================================================================
 // HOSTEL FLOOR
 //=====================================================================
 
 model HostelFloor {
-
   id String @id @default(cuid())
 
   blockId String
 
-  block HostelBlock
-      @relation(fields:[blockId], references:[id], onDelete:Cascade)
+  block HostelBlock @relation(fields: [blockId], references: [id], onDelete: Cascade)
 
   floorName String
 
@@ -4244,23 +3955,18 @@ model HostelFloor {
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
-
 }
-
-
 
 //=====================================================================
 // HOSTEL ROOM
 //=====================================================================
 
 model HostelRoom {
-
   id String @id @default(cuid())
 
   floorId String
 
-  floor HostelFloor
-      @relation(fields:[floorId], references:[id], onDelete:Cascade)
+  floor HostelFloor @relation(fields: [floorId], references: [id], onDelete: Cascade)
 
   roomNumber String
 
@@ -4276,22 +3982,19 @@ model HostelRoom {
 
   updatedAt DateTime @updatedAt
 
+  StudentHostelAllocation StudentHostelAllocation[]
 }
-
-
 
 //=====================================================================
 // HOSTEL BED
 //=====================================================================
 
 model HostelBed {
-
   id String @id @default(cuid())
 
   roomId String
 
-  room HostelRoom
-      @relation(fields:[roomId], references:[id], onDelete:Cascade)
+  room HostelRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
   bedNumber String
 
@@ -4301,7 +4004,9 @@ model HostelBed {
 
   updatedAt DateTime @updatedAt
 
+  StudentHostelAllocation StudentHostelAllocation[]
 }
+
 //=====================================================================
 // SECTION 18 (PART-B)
 // HOSTEL OPERATIONS & HOSTEL FINANCE
@@ -4318,22 +4023,18 @@ model HostelBed {
 //
 //=====================================================================
 
-
-
 //=====================================================================
 // HOSTEL FEE PLAN
 //=====================================================================
 
 model HostelFeePlan {
-
   id String @id @default(cuid())
 
   //------------------------------------------------------------------
 
   schoolId String
 
-  school School
-      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //------------------------------------------------------------------
 
@@ -4341,25 +4042,19 @@ model HostelFeePlan {
 
   hostelId String
 
-  hostel Hostel
-      @relation(fields:[hostelId], references:[id])
+  hostel Hostel @relation(fields: [hostelId], references: [id])
 
   //------------------------------------------------------------------
 
-  monthlyFee Decimal
-      @db.Decimal(12,2)
+  monthlyFee Decimal @db.Decimal(12, 2)
 
-  yearlyFee Decimal?
-      @db.Decimal(12,2)
+  yearlyFee Decimal? @db.Decimal(12, 2)
 
-  securityDeposit Decimal?
-      @db.Decimal(12,2)
+  securityDeposit Decimal? @db.Decimal(12, 2)
 
-  messFee Decimal?
-      @db.Decimal(12,2)
+  messFee Decimal? @db.Decimal(12, 2)
 
-  electricityCharges Decimal?
-      @db.Decimal(12,2)
+  electricityCharges Decimal? @db.Decimal(12, 2)
 
   //------------------------------------------------------------------
 
@@ -4377,59 +4072,51 @@ model HostelFeePlan {
 
   updatedAt DateTime @updatedAt
 
+  StudentHostelAllocation StudentHostelAllocation[]
 }
-
-
 
 //=====================================================================
 // STUDENT HOSTEL ALLOCATION
 //=====================================================================
 
 model StudentHostelAllocation {
-
   id String @id @default(cuid())
 
   //------------------------------------------------------------------
 
   schoolId String
 
-  school School
-      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //------------------------------------------------------------------
 
   studentId String
 
-  student Student
-      @relation(fields:[studentId], references:[id], onDelete:Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   //------------------------------------------------------------------
 
   hostelId String
 
-  hostel Hostel
-      @relation(fields:[hostelId], references:[id])
+  hostel Hostel @relation(fields: [hostelId], references: [id])
 
   //------------------------------------------------------------------
 
   roomId String
 
-  room HostelRoom
-      @relation(fields:[roomId], references:[id])
+  room HostelRoom @relation(fields: [roomId], references: [id])
 
   //------------------------------------------------------------------
 
   bedId String
 
-  bed HostelBed
-      @relation(fields:[bedId], references:[id])
+  bed HostelBed @relation(fields: [bedId], references: [id])
 
   //------------------------------------------------------------------
 
   feePlanId String?
 
-  feePlan HostelFeePlan?
-      @relation(fields:[feePlanId], references:[id])
+  feePlan HostelFeePlan? @relation(fields: [feePlanId], references: [id])
 
   //------------------------------------------------------------------
 
@@ -4452,37 +4139,28 @@ model StudentHostelAllocation {
   updatedAt DateTime @updatedAt
 
   //------------------------------------------------------------------
-
   @@index([studentId])
-
   @@index([schoolId])
-
 }
-
-
 
 //=====================================================================
 // HOSTEL WARDEN
 //=====================================================================
 
 model HostelWarden {
-
   id String @id @default(cuid())
 
   schoolId String
 
-  school School
-      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   employeeId String
 
-  employee Employee
-      @relation(fields:[employeeId], references:[id])
+  employee Employee @relation(fields: [employeeId], references: [id])
 
   hostelId String
 
-  hostel Hostel
-      @relation(fields:[hostelId], references:[id])
+  hostel Hostel @relation(fields: [hostelId], references: [id])
 
   joiningDate DateTime
 
@@ -4491,28 +4169,22 @@ model HostelWarden {
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
-
 }
-
-
 
 //=====================================================================
 // HOSTEL VISITOR REGISTER
 //=====================================================================
 
 model HostelVisitor {
-
   id String @id @default(cuid())
 
   schoolId String
 
-  school School
-      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   studentId String
 
-  student Student
-      @relation(fields:[studentId], references:[id])
+  student Student @relation(fields: [studentId], references: [id])
 
   visitorName String
 
@@ -4529,28 +4201,22 @@ model HostelVisitor {
   remarks String?
 
   createdAt DateTime @default(now())
-
 }
-
-
 
 //=====================================================================
 // HOSTEL LEAVE REGISTER
 //=====================================================================
 
 model HostelLeave {
-
   id String @id @default(cuid())
 
   schoolId String
 
-  school School
-      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   studentId String
 
-  student Student
-      @relation(fields:[studentId], references:[id])
+  student Student @relation(fields: [studentId], references: [id])
 
   leaveFrom DateTime
 
@@ -4561,8 +4227,8 @@ model HostelLeave {
   approvedByUserId String?
 
   createdAt DateTime @default(now())
-
 }
+
 //=====================================================================
 // SECTION 19
 // SCHOOL STORE MANAGEMENT (ENTERPRISE EDITION)
@@ -4603,14 +4269,11 @@ model HostelLeave {
 //
 //=====================================================================
 
-
-
 //=====================================================================
 // ENUMS
 //=====================================================================
 
 enum ProductCategory {
-
   BOOK
 
   NOTEBOOK
@@ -4628,23 +4291,15 @@ enum ProductCategory {
   LAB
 
   OTHER
-
 }
 
-
-
 enum ProductStatus {
-
   ACTIVE
 
   INACTIVE
-
 }
 
-
-
 enum InventoryTransactionType {
-
   PURCHASE
 
   SALE
@@ -4654,25 +4309,20 @@ enum InventoryTransactionType {
   DAMAGE
 
   ADJUSTMENT
-
 }
-
-
 
 //=====================================================================
 // PRODUCT MASTER
 //=====================================================================
 
 model StoreProduct {
-
   id String @id @default(cuid())
 
   //--------------------------------------------------------
 
   schoolId String
 
-  school School
-      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //--------------------------------------------------------
 
@@ -4696,14 +4346,11 @@ model StoreProduct {
 
   //--------------------------------------------------------
 
-  purchasePrice Decimal
-      @db.Decimal(12,2)
+  purchasePrice Decimal @db.Decimal(12, 2)
 
-  sellingPrice Decimal
-      @db.Decimal(12,2)
+  sellingPrice Decimal @db.Decimal(12, 2)
 
-  gstPercentage Decimal?
-      @db.Decimal(5,2)
+  gstPercentage Decimal? @db.Decimal(5, 2)
 
   //--------------------------------------------------------
 
@@ -4715,8 +4362,7 @@ model StoreProduct {
 
   //--------------------------------------------------------
 
-  status ProductStatus
-      @default(ACTIVE)
+  status ProductStatus @default(ACTIVE)
 
   //--------------------------------------------------------
 
@@ -4738,15 +4384,16 @@ model StoreProduct {
 
   updatedAt DateTime @updatedAt
 
+  PurchaseOrderItem       PurchaseOrderItem[]
+  InventoryTransaction    InventoryTransaction[]
+  StudentStoreInvoiceItem StudentStoreInvoiceItem[]
+
   //--------------------------------------------------------
-
   @@unique([schoolId, productCode])
-
   @@index([category])
-
   @@index([currentStock])
-
-}//=====================================================================
+}
+//=====================================================================
 // SECTION 19 (PART-B)
 // SCHOOL STORE OPERATIONS
 //=====================================================================
@@ -4765,20 +4412,16 @@ model StoreProduct {
 //
 //=====================================================================
 
-
-
 //=====================================================================
 // VENDOR MASTER
 //=====================================================================
 
 model StoreVendor {
-
   id String @id @default(cuid())
 
   schoolId String
 
-  school School
-      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   vendorCode String
 
@@ -4800,29 +4443,25 @@ model StoreVendor {
 
   updatedAt DateTime @updatedAt
 
+  PurchaseOrder PurchaseOrder[]
+
   @@unique([schoolId, vendorCode])
-
 }
-
-
 
 //=====================================================================
 // PURCHASE ORDER
 //=====================================================================
 
 model PurchaseOrder {
-
   id String @id @default(cuid())
 
   schoolId String
 
-  school School
-      @relation(fields:[schoolId], references:[id])
+  school School @relation(fields: [schoolId], references: [id])
 
   vendorId String
 
-  vendor StoreVendor
-      @relation(fields:[vendorId], references:[id])
+  vendor StoreVendor @relation(fields: [vendorId], references: [id])
 
   purchaseOrderNumber String
 
@@ -4830,8 +4469,7 @@ model PurchaseOrder {
 
   expectedDelivery DateTime?
 
-  totalAmount Decimal
-      @db.Decimal(12,2)
+  totalAmount Decimal @db.Decimal(12, 2)
 
   remarks String?
 
@@ -4839,57 +4477,45 @@ model PurchaseOrder {
 
   updatedAt DateTime @updatedAt
 
+  PurchaseOrderItem PurchaseOrderItem[]
 }
-
-
 
 //=====================================================================
 // PURCHASE ORDER ITEMS
 //=====================================================================
 
 model PurchaseOrderItem {
-
   id String @id @default(cuid())
 
   purchaseOrderId String
 
-  purchaseOrder PurchaseOrder
-      @relation(fields:[purchaseOrderId], references:[id], onDelete:Cascade)
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
 
   productId String
 
-  product StoreProduct
-      @relation(fields:[productId], references:[id])
+  product StoreProduct @relation(fields: [productId], references: [id])
 
   quantity Int
 
-  purchasePrice Decimal
-      @db.Decimal(12,2)
+  purchasePrice Decimal @db.Decimal(12, 2)
 
-  total Decimal
-      @db.Decimal(12,2)
-
+  total Decimal @db.Decimal(12, 2)
 }
-
-
 
 //=====================================================================
 // INVENTORY TRANSACTIONS
 //=====================================================================
 
 model InventoryTransaction {
-
   id String @id @default(cuid())
 
   schoolId String
 
-  school School
-      @relation(fields:[schoolId], references:[id])
+  school School @relation(fields: [schoolId], references: [id])
 
   productId String
 
-  product StoreProduct
-      @relation(fields:[productId], references:[id])
+  product StoreProduct @relation(fields: [productId], references: [id])
 
   transactionType InventoryTransactionType
 
@@ -4906,49 +4532,36 @@ model InventoryTransaction {
   createdAt DateTime @default(now())
 
   @@index([productId])
-
 }
-
-
 
 //=====================================================================
 // STUDENT STORE INVOICE
 //=====================================================================
 
 model StudentStoreInvoice {
-
   id String @id @default(cuid())
 
   schoolId String
 
-  school School
-      @relation(fields:[schoolId], references:[id])
+  school School @relation(fields: [schoolId], references: [id])
 
   studentId String
 
-  student Student
-      @relation(fields:[studentId], references:[id])
+  student Student @relation(fields: [studentId], references: [id])
 
   invoiceNumber String
 
   invoiceDate DateTime
 
-  subtotal Decimal
-      @db.Decimal(12,2)
+  subtotal Decimal @db.Decimal(12, 2)
 
-  discount Decimal
-      @default(0.00)
-      @db.Decimal(12,2)
+  discount Decimal @default(0.00) @db.Decimal(12, 2)
 
-  gst Decimal
-      @default(0.00)
-      @db.Decimal(12,2)
+  gst Decimal @default(0.00) @db.Decimal(12, 2)
 
-  totalAmount Decimal
-      @db.Decimal(12,2)
+  totalAmount Decimal @db.Decimal(12, 2)
 
-  paymentReceived Boolean
-      @default(false)
+  paymentReceived Boolean @default(false)
 
   remarks String?
 
@@ -4956,47 +4569,37 @@ model StudentStoreInvoice {
 
   updatedAt DateTime @updatedAt
 
+  StudentStoreInvoiceItem StudentStoreInvoiceItem[]
+
   @@unique([schoolId, invoiceNumber])
-
 }
-
-
 
 //=====================================================================
 // STUDENT STORE INVOICE ITEMS
 //=====================================================================
 
 model StudentStoreInvoiceItem {
-
   id String @id @default(cuid())
 
   invoiceId String
 
-  invoice StudentStoreInvoice
-      @relation(fields:[invoiceId], references:[id], onDelete:Cascade)
+  invoice StudentStoreInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
   productId String
 
-  product StoreProduct
-      @relation(fields:[productId], references:[id])
+  product StoreProduct @relation(fields: [productId], references: [id])
 
   quantity Int
 
-  sellingPrice Decimal
-      @db.Decimal(12,2)
+  sellingPrice Decimal @db.Decimal(12, 2)
 
-  discount Decimal
-      @default(0.00)
-      @db.Decimal(12,2)
+  discount Decimal @default(0.00) @db.Decimal(12, 2)
 
-  gst Decimal
-      @default(0.00)
-      @db.Decimal(12,2)
+  gst Decimal @default(0.00) @db.Decimal(12, 2)
 
-  total Decimal
-      @db.Decimal(12,2)
-
+  total Decimal @db.Decimal(12, 2)
 }
+
 //=====================================================================
 // SECTION 20
 // INVENTORY & ASSET MANAGEMENT
@@ -5028,14 +4631,11 @@ model StudentStoreInvoiceItem {
 //
 //=====================================================================
 
-
-
 //=====================================================================
 // ENUMS
 //=====================================================================
 
 enum AssetCategory {
-
   COMPUTER
 
   LAPTOP
@@ -5059,13 +4659,9 @@ enum AssetCategory {
   VEHICLE
 
   OTHER
-
 }
 
-
-
 enum AssetStatus {
-
   AVAILABLE
 
   ASSIGNED
@@ -5075,13 +4671,9 @@ enum AssetStatus {
   LOST
 
   SCRAPPED
-
 }
 
-
-
 enum AssetCondition {
-
   NEW
 
   GOOD
@@ -5089,17 +4681,13 @@ enum AssetCondition {
   FAIR
 
   DAMAGED
-
 }
-
-
 
 //=====================================================================
 // ASSET MASTER
 //=====================================================================
 
 model Asset {
-
   //------------------------------------------------------------
 
   id String @id @default(cuid())
@@ -5108,8 +4696,7 @@ model Asset {
 
   schoolId String
 
-  school School
-      @relation(fields:[schoolId], references:[id], onDelete:Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //------------------------------------------------------------
 
@@ -5137,25 +4724,21 @@ model Asset {
 
   purchaseDate DateTime?
 
-  purchasePrice Decimal?
-      @db.Decimal(12,2)
+  purchasePrice Decimal? @db.Decimal(12, 2)
 
   warrantyExpiry DateTime?
 
   //------------------------------------------------------------
 
-  currentValue Decimal?
-      @db.Decimal(12,2)
+  currentValue Decimal? @db.Decimal(12, 2)
 
   //------------------------------------------------------------
 
-  condition AssetCondition
-      @default(NEW)
+  condition AssetCondition @default(NEW)
 
   //------------------------------------------------------------
 
-  status AssetStatus
-      @default(AVAILABLE)
+  status AssetStatus @default(AVAILABLE)
 
   //------------------------------------------------------------
 
@@ -5187,16 +4770,17 @@ model Asset {
 
   updatedAt DateTime @updatedAt
 
+  AssetTransfer AssetTransfer[]
+  AssetAMC      AssetAMC[]
+  AssetAudit    AssetAudit[]
+  AssetDisposal AssetDisposal[]
+  AssetHistory  AssetHistory[]
+
   //------------------------------------------------------------
-
   @@unique([schoolId, assetCode])
-
   @@index([schoolId])
-
   @@index([category])
-
   @@index([status])
-
 }
 
 //=====================================================================
@@ -5216,8 +4800,6 @@ model Asset {
 // ✓ Complete Asset History
 //
 //=====================================================================
-
-
 
 //=====================================================================
 // ENUMS
@@ -5253,23 +4835,20 @@ enum AuditResult {
   DAMAGED
 }
 
-
-
 //=====================================================================
 // ASSET ASSIGNMENT
 //=====================================================================
 
 model AssetAssignment {
-
   id String @id @default(cuid())
 
   assetId String
-  asset Asset @relation(fields:[assetId], references:[id], onDelete:Cascade)
+  asset   Asset  @relation(fields: [assetId], references: [id], onDelete: Cascade)
 
   assignmentType AssetAssignmentType
 
-  assignedEmployeeId String?
-  assignedRoomId String?
+  assignedEmployeeId   String?
+  assignedRoomId       String?
   assignedDepartmentId String?
 
   assignedDate DateTime
@@ -5289,18 +4868,15 @@ model AssetAssignment {
   @@index([assetId])
 }
 
-
-
 //=====================================================================
 // ASSET TRANSFER
 //=====================================================================
 
 model AssetTransfer {
-
   id String @id @default(cuid())
 
   assetId String
-  asset Asset @relation(fields:[assetId], references:[id])
+  asset   Asset  @relation(fields: [assetId], references: [id])
 
   fromLocation String
 
@@ -5315,35 +4891,29 @@ model AssetTransfer {
   remarks String?
 
   createdAt DateTime @default(now())
-
 }
-
-
 
 //=====================================================================
 // ASSET MAINTENANCE
 //=====================================================================
 
 model AssetMaintenance {
-
   id String @id @default(cuid())
 
   assetId String
-  asset Asset @relation(fields:[assetId], references:[id])
+  asset   Asset  @relation(fields: [assetId], references: [id])
 
   complaintDate DateTime
 
   maintenanceDate DateTime?
 
-  maintenanceStatus MaintenanceStatus
-      @default(OPEN)
+  maintenanceStatus MaintenanceStatus @default(OPEN)
 
   vendorName String?
 
   description String?
 
-  maintenanceCost Decimal?
-      @db.Decimal(12,2)
+  maintenanceCost Decimal? @db.Decimal(12, 2)
 
   nextMaintenanceDate DateTime?
 
@@ -5352,21 +4922,17 @@ model AssetMaintenance {
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
-
 }
-
-
 
 //=====================================================================
 // ANNUAL MAINTENANCE CONTRACT
 //=====================================================================
 
 model AssetAMC {
-
   id String @id @default(cuid())
 
   assetId String
-  asset Asset @relation(fields:[assetId], references:[id])
+  asset   Asset  @relation(fields: [assetId], references: [id])
 
   vendorName String
 
@@ -5376,30 +4942,25 @@ model AssetAMC {
 
   endDate DateTime
 
-  contractAmount Decimal?
-      @db.Decimal(12,2)
+  contractAmount Decimal? @db.Decimal(12, 2)
 
   serviceFrequencyMonths Int?
 
   remarks String?
 
   createdAt DateTime @default(now())
-
 }
-
-
 
 //=====================================================================
 // ASSET AUDIT
 //=====================================================================
 
 model AssetAudit {
-
   id String @id @default(cuid())
 
   assetId String
 
-  asset Asset @relation(fields:[assetId], references:[id])
+  asset Asset @relation(fields: [assetId], references: [id])
 
   auditDate DateTime
 
@@ -5410,51 +4971,42 @@ model AssetAudit {
   remarks String?
 
   createdAt DateTime @default(now())
-
 }
-
-
 
 //=====================================================================
 // ASSET DISPOSAL
 //=====================================================================
 
 model AssetDisposal {
-
   id String @id @default(cuid())
 
   assetId String
 
-  asset Asset @relation(fields:[assetId], references:[id])
+  asset Asset @relation(fields: [assetId], references: [id])
 
   disposalType DisposalType
 
   disposalDate DateTime
 
-  disposalValue Decimal?
-      @db.Decimal(12,2)
+  disposalValue Decimal? @db.Decimal(12, 2)
 
   approvedByUserId String?
 
   remarks String?
 
   createdAt DateTime @default(now())
-
 }
-
-
 
 //=====================================================================
 // ASSET HISTORY
 //=====================================================================
 
 model AssetHistory {
-
   id String @id @default(cuid())
 
   assetId String
 
-  asset Asset @relation(fields:[assetId], references:[id], onDelete:Cascade)
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
 
   activity String
 
@@ -5469,8 +5021,8 @@ model AssetHistory {
   remarks String?
 
   createdAt DateTime @default(now())
-
 }
+
 //======================================================================
 // SECTION 21
 // ADMISSION MANAGEMENT
@@ -5503,8 +5055,6 @@ model AssetHistory {
 // not redesign it.
 //
 //======================================================================
-
-
 
 //======================================================================
 // ADMISSION ENUMS
@@ -5541,15 +5091,12 @@ enum EnquirySource {
   OTHER
 }
 
-
-
 //======================================================================
 // 21.1
 // ADMISSION ENQUIRY
 //======================================================================
 
 model AdmissionEnquiry {
-
   //=========================
   // Primary Key
   //=========================
@@ -5562,8 +5109,7 @@ model AdmissionEnquiry {
 
   schoolId String
 
-  school School
-    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //=========================
   // Academic Session
@@ -5580,11 +5126,9 @@ model AdmissionEnquiry {
 
   enquiryNumber String
 
-  enquirySource EnquirySource
-    @default(WALK_IN)
+  enquirySource EnquirySource @default(WALK_IN)
 
-  enquiryDate DateTime
-    @default(now())
+  enquiryDate DateTime @default(now())
 
   //=========================
   // Student Information
@@ -5620,8 +5164,7 @@ model AdmissionEnquiry {
 
   followUpDate DateTime?
 
-  convertedToApplication Boolean
-    @default(false)
+  convertedToApplication Boolean @default(false)
 
   //=========================
   // Audit
@@ -5629,11 +5172,9 @@ model AdmissionEnquiry {
 
   createdByUserId String?
 
-  createdAt DateTime
-    @default(now())
+  createdAt DateTime @default(now())
 
-  updatedAt DateTime
-    @updatedAt
+  updatedAt DateTime @updatedAt
 
   //=========================
   // Relations
@@ -5644,20 +5185,12 @@ model AdmissionEnquiry {
   //=========================
   // Constraints
   //=========================
-
   @@unique([schoolId, enquiryNumber])
-
   @@index([schoolId])
-
   @@index([academicSessionId])
-
   @@index([mobile])
-
   @@index([convertedToApplication])
-
 }
-
-
 
 //======================================================================
 // 21.2
@@ -5666,7 +5199,6 @@ model AdmissionEnquiry {
 //======================================================================
 
 model AdmissionApplication {
-
   //=========================
   // Primary Key
   //=========================
@@ -5679,8 +5211,7 @@ model AdmissionApplication {
 
   schoolId String
 
-  school School
-    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //=========================
   // Academic Session
@@ -5695,10 +5226,9 @@ model AdmissionApplication {
   // Enquiry
   //=========================
 
-  enquiryId String?
+  enquiryId String? @unique
 
-  enquiry AdmissionEnquiry?
-    @relation(fields: [enquiryId], references: [id])
+  enquiry AdmissionEnquiry? @relation(fields: [enquiryId], references: [id])
 
   //=========================
   // Application Details
@@ -5706,18 +5236,15 @@ model AdmissionApplication {
 
   applicationNumber String
 
-  admissionType AdmissionType
-    @default(FRESH)
+  admissionType AdmissionType @default(FRESH)
 
-  admissionStatus AdmissionStatus
-    @default(APPLICATION_SUBMITTED)
+  admissionStatus AdmissionStatus @default(APPLICATION_SUBMITTED)
 
   classApplied String
 
   sectionPreference String?
 
-  applicationDate DateTime
-    @default(now())
+  applicationDate DateTime @default(now())
 
   remarks String?
 
@@ -5737,11 +5264,9 @@ model AdmissionApplication {
 
   createdByUserId String?
 
-  createdAt DateTime
-    @default(now())
+  createdAt DateTime @default(now())
 
-  updatedAt DateTime
-    @updatedAt
+  updatedAt DateTime @updatedAt
 
   //=========================
   // Relations
@@ -5780,18 +5305,11 @@ model AdmissionApplication {
   //=========================
   // Constraints
   //=========================
-
   @@unique([schoolId, applicationNumber])
-
   @@index([schoolId])
-
   @@index([academicSessionId])
-
   @@index([admissionStatus])
-
 }
-
-
 
 //======================================================================
 // 21.3
@@ -5799,13 +5317,11 @@ model AdmissionApplication {
 //======================================================================
 
 model AdmissionStudentProfile {
-
   id String @id @default(cuid())
 
   applicationId String @unique
 
-  application AdmissionApplication
-    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  application AdmissionApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   firstName String
 
@@ -5831,13 +5347,11 @@ model AdmissionStudentProfile {
 
   studentPhoto String?
 
-  createdAt DateTime
-    @default(now())
+  createdAt DateTime @default(now())
 
-  updatedAt DateTime
-    @updatedAt
-
+  updatedAt DateTime @updatedAt
 }
+
 //======================================================================
 // 21.4
 // ADMISSION FAMILY DETAILS
@@ -5857,7 +5371,6 @@ model AdmissionStudentProfile {
 //======================================================================
 
 model AdmissionFamily {
-
   //=========================
   // Primary Key
   //=========================
@@ -5870,8 +5383,7 @@ model AdmissionFamily {
 
   applicationId String @unique
 
-  application AdmissionApplication
-    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  application AdmissionApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   //====================================================
   // FATHER DETAILS
@@ -5925,13 +5437,11 @@ model AdmissionFamily {
   // FAMILY INFORMATION
   //====================================================
 
-  annualIncome Decimal?
-    @db.Decimal(12,2)
+  annualIncome Decimal? @db.Decimal(12, 2)
 
   familyCategory String?
 
-  economicallyWeakerSection Boolean
-    @default(false)
+  economicallyWeakerSection Boolean @default(false)
 
   //====================================================
   // EMERGENCY
@@ -5947,16 +5457,10 @@ model AdmissionFamily {
   // AUDIT
   //====================================================
 
-  createdAt DateTime
-    @default(now())
+  createdAt DateTime @default(now())
 
-  updatedAt DateTime
-    @updatedAt
-
+  updatedAt DateTime @updatedAt
 }
-
-
-
 
 //======================================================================
 // 21.5
@@ -5973,13 +5477,11 @@ model AdmissionFamily {
 //======================================================================
 
 model AdmissionPreviousSchool {
-
   id String @id @default(cuid())
 
   applicationId String @unique
 
-  application AdmissionApplication
-    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  application AdmissionApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   previousSchoolName String?
 
@@ -6003,23 +5505,16 @@ model AdmissionPreviousSchool {
 
   lastResult String?
 
-  percentage Decimal?
-    @db.Decimal(5,2)
+  percentage Decimal? @db.Decimal(5, 2)
 
   passingYear Int?
 
   reasonForLeaving String?
 
-  createdAt DateTime
-    @default(now())
+  createdAt DateTime @default(now())
 
-  updatedAt DateTime
-    @updatedAt
-
+  updatedAt DateTime @updatedAt
 }
-
-
-
 
 //======================================================================
 // 21.6
@@ -6037,13 +5532,11 @@ model AdmissionPreviousSchool {
 //======================================================================
 
 model AdmissionGovernmentIdentity {
-
   id String @id @default(cuid())
 
   applicationId String @unique
 
-  application AdmissionApplication
-    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  application AdmissionApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   //====================================================
   // STUDENT IDs
@@ -6063,14 +5556,11 @@ model AdmissionGovernmentIdentity {
   // VERIFICATION
   //====================================================
 
-  aadhaarVerified Boolean
-    @default(false)
+  aadhaarVerified Boolean @default(false)
 
-  apaarVerified Boolean
-    @default(false)
+  apaarVerified Boolean @default(false)
 
-  penVerified Boolean
-    @default(false)
+  penVerified Boolean @default(false)
 
   verifiedByUserId String?
 
@@ -6078,19 +5568,15 @@ model AdmissionGovernmentIdentity {
 
   remarks String?
 
-  createdAt DateTime
-    @default(now())
+  createdAt DateTime @default(now())
 
-  updatedAt DateTime
-    @updatedAt
+  updatedAt DateTime @updatedAt
 
   @@index([studentAadhaar])
-
   @@index([apaarId])
-
   @@index([penNumber])
-
 }
+
 //======================================================================
 // 21.7
 // ADMISSION MEDICAL DETAILS
@@ -6109,13 +5595,11 @@ model AdmissionGovernmentIdentity {
 //======================================================================
 
 model AdmissionMedical {
-
   id String @id @default(cuid())
 
   applicationId String @unique
 
-  application AdmissionApplication
-    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  application AdmissionApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   bloodGroup String?
 
@@ -6133,19 +5617,14 @@ model AdmissionMedical {
 
   emergencyMedicalNotes String?
 
-  height Decimal?
-    @db.Decimal(5,2)
+  height Decimal? @db.Decimal(5, 2)
 
-  weight Decimal?
-    @db.Decimal(5,2)
+  weight Decimal? @db.Decimal(5, 2)
 
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
-
 }
-
-
 
 //======================================================================
 // 21.8
@@ -6159,13 +5638,11 @@ model AdmissionMedical {
 //======================================================================
 
 model AdmissionPreference {
-
   id String @id @default(cuid())
 
   applicationId String @unique
 
-  application AdmissionApplication
-    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  application AdmissionApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   //=========================
   // Academic
@@ -6185,18 +5662,15 @@ model AdmissionPreference {
   // Facilities
   //=========================
 
-  requiresTransport Boolean
-    @default(false)
+  requiresTransport Boolean @default(false)
 
   preferredTransportRoute String?
 
   preferredTransportStop String?
 
-  requiresHostel Boolean
-    @default(false)
+  requiresHostel Boolean @default(false)
 
-  requiresMess Boolean
-    @default(false)
+  requiresMess Boolean @default(false)
 
   //=========================
   // Financial
@@ -6204,8 +5678,7 @@ model AdmissionPreference {
 
   scholarshipCategory String?
 
-  feeConcession Boolean
-    @default(false)
+  feeConcession Boolean @default(false)
 
   feeConcessionReason String?
 
@@ -6214,10 +5687,7 @@ model AdmissionPreference {
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
-
 }
-
-
 
 //======================================================================
 // 21.9
@@ -6236,7 +5706,6 @@ model AdmissionPreference {
 //======================================================================
 
 enum AdmissionDocumentType {
-
   BIRTH_CERTIFICATE
 
   STUDENT_AADHAAR
@@ -6268,29 +5737,22 @@ enum AdmissionDocumentType {
   PASSPORT_PHOTO
 
   OTHER
-
 }
 
 enum DocumentVerificationStatus {
-
   PENDING
 
   VERIFIED
 
   REJECTED
-
 }
 
-
-
 model AdmissionDocument {
-
   id String @id @default(cuid())
 
   applicationId String
 
-  application AdmissionApplication
-    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  application AdmissionApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   documentType AdmissionDocumentType
 
@@ -6301,8 +5763,7 @@ model AdmissionDocument {
 
   documentPath String?
 
-  verificationStatus DocumentVerificationStatus
-    @default(PENDING)
+  verificationStatus DocumentVerificationStatus @default(PENDING)
 
   verifiedByUserId String?
 
@@ -6317,12 +5778,10 @@ model AdmissionDocument {
   updatedAt DateTime @updatedAt
 
   @@index([applicationId])
-
   @@index([documentType])
-
   @@index([verificationStatus])
-
-}//======================================================================
+}
+//======================================================================
 // SECTION 21.10
 // ADMISSION ENTRANCE EXAMINATION
 //======================================================================
@@ -6346,7 +5805,6 @@ enum AdmissionExamResult {
 }
 
 model AdmissionEntranceExam {
-
   //=========================
   // Primary Key
   //=========================
@@ -6359,8 +5817,7 @@ model AdmissionEntranceExam {
 
   applicationId String @unique
 
-  application AdmissionApplication
-    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  application AdmissionApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   //=========================
   // Examination Details
@@ -6372,17 +5829,13 @@ model AdmissionEntranceExam {
 
   examinerName String?
 
-  maximumMarks Decimal?
-    @db.Decimal(6,2)
+  maximumMarks Decimal? @db.Decimal(6, 2)
 
-  obtainedMarks Decimal?
-    @db.Decimal(6,2)
+  obtainedMarks Decimal? @db.Decimal(6, 2)
 
-  percentage Decimal?
-    @db.Decimal(5,2)
+  percentage Decimal? @db.Decimal(5, 2)
 
-  result AdmissionExamResult
-    @default(PENDING)
+  result AdmissionExamResult @default(PENDING)
 
   remarks String?
 
@@ -6393,10 +5846,7 @@ model AdmissionEntranceExam {
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
-
 }
-
-
 
 //======================================================================
 // SECTION 21.11
@@ -6416,13 +5866,11 @@ enum AdmissionInterviewRecommendation {
 }
 
 model AdmissionInterview {
-
   id String @id @default(cuid())
 
   applicationId String @unique
 
-  application AdmissionApplication
-    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  application AdmissionApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   interviewDate DateTime?
 
@@ -6437,10 +5885,7 @@ model AdmissionInterview {
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
-
 }
-
-
 
 //======================================================================
 // SECTION 21.12
@@ -6461,13 +5906,11 @@ enum AdmissionOfferStatus {
 }
 
 model AdmissionOffer {
-
   id String @id @default(cuid())
 
   applicationId String @unique
 
-  application AdmissionApplication
-    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  application AdmissionApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   offerNumber String
 
@@ -6481,8 +5924,7 @@ model AdmissionOffer {
 
   remarks String?
 
-  status AdmissionOfferStatus
-    @default(PENDING)
+  status AdmissionOfferStatus @default(PENDING)
 
   acceptedAt DateTime?
 
@@ -6491,10 +5933,7 @@ model AdmissionOffer {
   updatedAt DateTime @updatedAt
 
   @@index([status])
-
 }
-
-
 
 //======================================================================
 // SECTION 21.13
@@ -6521,33 +5960,25 @@ enum AdmissionPaymentStatus {
 }
 
 model AdmissionPayment {
-
   id String @id @default(cuid())
 
   applicationId String
 
-  application AdmissionApplication
-    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  application AdmissionApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   receiptNumber String?
 
-  registrationFee Decimal?
-    @db.Decimal(12,2)
+  registrationFee Decimal? @db.Decimal(12, 2)
 
-  admissionFee Decimal?
-    @db.Decimal(12,2)
+  admissionFee Decimal? @db.Decimal(12, 2)
 
-  prospectusFee Decimal?
-    @db.Decimal(12,2)
+  prospectusFee Decimal? @db.Decimal(12, 2)
 
-  scholarshipAmount Decimal?
-    @db.Decimal(12,2)
+  scholarshipAmount Decimal? @db.Decimal(12, 2)
 
-  concessionAmount Decimal?
-    @db.Decimal(12,2)
+  concessionAmount Decimal? @db.Decimal(12, 2)
 
-  totalAmount Decimal?
-    @db.Decimal(12,2)
+  totalAmount Decimal? @db.Decimal(12, 2)
 
   paymentMode String?
 
@@ -6555,8 +5986,7 @@ model AdmissionPayment {
 
   paymentDate DateTime?
 
-  status AdmissionPaymentStatus
-    @default(PENDING)
+  status AdmissionPaymentStatus @default(PENDING)
 
   remarks String?
 
@@ -6565,10 +5995,9 @@ model AdmissionPayment {
   updatedAt DateTime @updatedAt
 
   @@index([applicationId])
-
   @@index([status])
-
 }
+
 //======================================================================
 // SECTION 21.14
 // ADMISSION WAITING LIST
@@ -6594,7 +6023,6 @@ enum WaitingListStatus {
 }
 
 model AdmissionWaitingList {
-
   //=========================
   // Primary Key
   //=========================
@@ -6607,8 +6035,7 @@ model AdmissionWaitingList {
 
   applicationId String @unique
 
-  application AdmissionApplication
-    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  application AdmissionApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   //=========================
   // Waiting Details
@@ -6620,8 +6047,7 @@ model AdmissionWaitingList {
 
   waitingReason String?
 
-  status WaitingListStatus
-    @default(ACTIVE)
+  status WaitingListStatus @default(ACTIVE)
 
   offeredOn DateTime?
 
@@ -6638,10 +6064,7 @@ model AdmissionWaitingList {
   updatedAt DateTime @updatedAt
 
   @@index([status])
-
 }
-
-
 
 //======================================================================
 // SECTION 21.15
@@ -6655,7 +6078,6 @@ model AdmissionWaitingList {
 //======================================================================
 
 enum AdmissionHistoryAction {
-
   ENQUIRY_CREATED
 
   APPLICATION_CREATED
@@ -6681,22 +6103,18 @@ enum AdmissionHistoryAction {
   CANCELLED
 
   STUDENT_CREATED
-
 }
 
 model AdmissionHistory {
-
   id String @id @default(cuid())
 
   applicationId String
 
-  application AdmissionApplication
-    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  application AdmissionApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   action AdmissionHistoryAction
 
-  actionDate DateTime
-    @default(now())
+  actionDate DateTime @default(now())
 
   performedByUserId String?
 
@@ -6704,16 +6122,11 @@ model AdmissionHistory {
 
   remarks String?
 
-  createdAt DateTime
-    @default(now())
+  createdAt DateTime @default(now())
 
   @@index([applicationId])
-
   @@index([action])
-
 }
-
-
 
 //======================================================================
 // FUTURE INTEGRATION NOTES
@@ -6772,14 +6185,11 @@ model AdmissionHistory {
 //
 //======================================================================
 
-
-
 //======================================================================
 // LEDGER TYPE
 //======================================================================
 
 enum LedgerType {
-
   ASSET
 
   LIABILITY
@@ -6789,31 +6199,23 @@ enum LedgerType {
   EXPENSE
 
   EQUITY
-
 }
-
-
 
 //======================================================================
 // LEDGER STATUS
 //======================================================================
 
 enum LedgerStatus {
-
   ACTIVE
 
   INACTIVE
-
 }
-
-
 
 //======================================================================
 // FINANCIAL LEDGER
 //======================================================================
 
 model FinancialLedger {
-
   //=========================
   // Primary Key
   //=========================
@@ -6826,8 +6228,7 @@ model FinancialLedger {
 
   schoolId String
 
-  school School
-    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //=========================
   // Ledger Information
@@ -6841,19 +6242,13 @@ model FinancialLedger {
 
   description String?
 
-  openingBalance Decimal
-    @default(0)
-    @db.Decimal(15,2)
+  openingBalance Decimal @default(0) @db.Decimal(15, 2)
 
-  currentBalance Decimal
-    @default(0)
-    @db.Decimal(15,2)
+  currentBalance Decimal @default(0) @db.Decimal(15, 2)
 
-  status LedgerStatus
-    @default(ACTIVE)
+  status LedgerStatus @default(ACTIVE)
 
-  isSystemLedger Boolean
-    @default(false)
+  isSystemLedger Boolean @default(false)
 
   //=========================
   // Future Relations
@@ -6865,27 +6260,23 @@ model FinancialLedger {
   // Audit
   //=========================
 
-  createdAt DateTime
-    @default(now())
+  createdAt DateTime @default(now())
 
-  updatedAt DateTime
-    @updatedAt
+  updatedAt DateTime @updatedAt
+
+  ChartOfAccount ChartOfAccount[]
+  VoucherEntry   VoucherEntry[]
 
   //=========================
   // Constraints
   //=========================
-
   @@unique([schoolId, ledgerCode])
-
   @@unique([schoolId, ledgerName])
-
   @@index([schoolId])
-
   @@index([ledgerType])
-
   @@index([status])
-
 }
+
 //======================================================================
 // SECTION 22.2
 // CHART OF ACCOUNTS (COA)
@@ -6914,14 +6305,11 @@ model FinancialLedger {
 //
 //======================================================================
 
-
-
 //======================================================================
 // ACCOUNT CATEGORY
 //======================================================================
 
 enum AccountCategory {
-
   ASSET
 
   LIABILITY
@@ -6931,31 +6319,23 @@ enum AccountCategory {
   INCOME
 
   EXPENSE
-
 }
-
-
 
 //======================================================================
 // ACCOUNT NATURE
 //======================================================================
 
 enum AccountNature {
-
   DEBIT
 
   CREDIT
-
 }
-
-
 
 //======================================================================
 // CHART OF ACCOUNTS
 //======================================================================
 
 model ChartOfAccount {
-
   //=========================
   // Primary Key
   //=========================
@@ -6968,8 +6348,7 @@ model ChartOfAccount {
 
   schoolId String
 
-  school School
-    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //=========================
   // Account Information
@@ -6991,11 +6370,9 @@ model ChartOfAccount {
 
   parentAccountId String?
 
-  parentAccount ChartOfAccount?
-    @relation("ChartHierarchy", fields: [parentAccountId], references: [id])
+  parentAccount ChartOfAccount? @relation("ChartHierarchy", fields: [parentAccountId], references: [id])
 
-  childAccounts ChartOfAccount[]
-    @relation("ChartHierarchy")
+  childAccounts ChartOfAccount[] @relation("ChartHierarchy")
 
   //=========================
   // Ledger Mapping
@@ -7003,44 +6380,34 @@ model ChartOfAccount {
 
   ledgerId String?
 
-  ledger FinancialLedger?
-    @relation(fields: [ledgerId], references: [id])
+  ledger FinancialLedger? @relation(fields: [ledgerId], references: [id])
 
   //=========================
   // Settings
   //=========================
 
-  isSystemAccount Boolean
-    @default(false)
+  isSystemAccount Boolean @default(false)
 
-  isActive Boolean
-    @default(true)
+  isActive Boolean @default(true)
 
   //=========================
   // Audit
   //=========================
 
-  createdAt DateTime
-    @default(now())
+  createdAt DateTime @default(now())
 
-  updatedAt DateTime
-    @updatedAt
+  updatedAt DateTime @updatedAt
 
   //=========================
   // Constraints
   //=========================
-
   @@unique([schoolId, accountCode])
-
   @@unique([schoolId, accountName])
-
   @@index([schoolId])
-
   @@index([accountCategory])
-
   @@index([isActive])
-
-}//======================================================================
+}
+//======================================================================
 // SECTION 22.3
 // VOUCHER MANAGEMENT
 //======================================================================
@@ -7063,14 +6430,11 @@ model ChartOfAccount {
 //
 //======================================================================
 
-
-
 //======================================================================
 // VOUCHER TYPE
 //======================================================================
 
 enum VoucherType {
-
   PAYMENT
 
   RECEIPT
@@ -7084,40 +6448,30 @@ enum VoucherType {
   PURCHASE
 
   REFUND
-
 }
-
-
 
 //======================================================================
 // VOUCHER STATUS
 //======================================================================
 
 enum VoucherStatus {
-
   DRAFT
 
   POSTED
 
   CANCELLED
-
 }
-
-
 
 //======================================================================
 // FINANCIAL VOUCHER
 //======================================================================
 
 model FinancialVoucher {
-
   //======================================================
   // PRIMARY KEY
   //======================================================
 
   id String @id @default(cuid())
-
-
 
   //======================================================
   // SCHOOL
@@ -7125,10 +6479,7 @@ model FinancialVoucher {
 
   schoolId String
 
-  school School
-    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-
-
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //======================================================
   // BASIC INFORMATION
@@ -7142,25 +6493,17 @@ model FinancialVoucher {
 
   description String?
 
-
-
   //======================================================
   // AMOUNT
   //======================================================
 
-  totalAmount Decimal
-    @db.Decimal(15,2)
-
-
+  totalAmount Decimal @db.Decimal(15, 2)
 
   //======================================================
   // STATUS
   //======================================================
 
-  status VoucherStatus
-    @default(DRAFT)
-
-
+  status VoucherStatus @default(DRAFT)
 
   //======================================================
   // SOURCE MODULE
@@ -7169,8 +6512,6 @@ model FinancialVoucher {
   sourceModule String?
 
   sourceDocumentId String?
-
-
 
   //======================================================
   // FUTURE REFERENCES
@@ -7182,15 +6523,11 @@ model FinancialVoucher {
 
   vendorId String?
 
-
-
   //======================================================
   // RELATIONS
   //======================================================
 
   entries VoucherEntry[]
-
-
 
   //======================================================
   // AUDIT
@@ -7202,33 +6539,23 @@ model FinancialVoucher {
 
   approvedAt DateTime?
 
-  createdAt DateTime
-    @default(now())
+  createdAt DateTime @default(now())
 
-  updatedAt DateTime
-    @updatedAt
+  updatedAt DateTime @updatedAt
 
-
+  PaymentCollection PaymentCollection[]
+  PayrollProcess    PayrollProcess[]
+  PayrollPayment    PayrollPayment[]
 
   //======================================================
   // CONSTRAINTS
   //======================================================
-
   @@unique([schoolId, voucherNumber])
-
   @@index([schoolId])
-
   @@index([voucherType])
-
   @@index([voucherDate])
-
   @@index([status])
-
 }
-
-
-
-
 
 //======================================================================
 // VOUCHER ENTRY
@@ -7243,18 +6570,13 @@ model FinancialVoucher {
 //======================================================================
 
 enum EntryType {
-
   DEBIT
 
   CREDIT
-
 }
 
 model VoucherEntry {
-
   id String @id @default(cuid())
-
-
 
   //======================================================
   // VOUCHER
@@ -7262,10 +6584,7 @@ model VoucherEntry {
 
   voucherId String
 
-  voucher FinancialVoucher
-    @relation(fields: [voucherId], references: [id], onDelete: Cascade)
-
-
+  voucher FinancialVoucher @relation(fields: [voucherId], references: [id], onDelete: Cascade)
 
   //======================================================
   // LEDGER
@@ -7273,10 +6592,7 @@ model VoucherEntry {
 
   ledgerId String
 
-  ledger FinancialLedger
-    @relation(fields: [ledgerId], references: [id])
-
-
+  ledger FinancialLedger @relation(fields: [ledgerId], references: [id])
 
   //======================================================
   // ENTRY
@@ -7284,31 +6600,23 @@ model VoucherEntry {
 
   entryType EntryType
 
-  amount Decimal
-    @db.Decimal(15,2)
+  amount Decimal @db.Decimal(15, 2)
 
   narration String?
-
-
 
   //======================================================
   // AUDIT
   //======================================================
 
-  createdAt DateTime
-    @default(now())
-
-
+  createdAt DateTime @default(now())
 
   //======================================================
   // INDEXES
   //======================================================
-
   @@index([voucherId])
-
   @@index([ledgerId])
-
 }
+
 //======================================================================
 // SECTION 22.4
 // PAYMENT COLLECTION
@@ -7328,14 +6636,11 @@ model VoucherEntry {
 //
 //======================================================================
 
-
-
 //======================================================================
 // PAYMENT SOURCE
 //======================================================================
 
 enum PaymentSource {
-
   ADMISSION
 
   STUDENT_FEE
@@ -7353,17 +6658,13 @@ enum PaymentSource {
   CERTIFICATE
 
   OTHER
-
 }
-
-
 
 //======================================================================
 // PAYMENT MODE
 //======================================================================
 
 enum PaymentMode {
-
   CASH
 
   CHEQUE
@@ -7381,17 +6682,13 @@ enum PaymentMode {
   QR_CODE
 
   ONLINE_GATEWAY
-
 }
-
-
 
 //======================================================================
 // PAYMENT STATUS
 //======================================================================
 
 enum PaymentCollectionStatus {
-
   PENDING
 
   SUCCESS
@@ -7401,24 +6698,18 @@ enum PaymentCollectionStatus {
   CANCELLED
 
   REFUNDED
-
 }
-
-
 
 //======================================================================
 // PAYMENT COLLECTION
 //======================================================================
 
 model PaymentCollection {
-
   //=========================
   // Primary Key
   //=========================
 
   id String @id @default(cuid())
-
-
 
   //=========================
   // School
@@ -7426,10 +6717,7 @@ model PaymentCollection {
 
   schoolId String
 
-  school School
-    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-
-
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //=========================
   // Voucher
@@ -7437,10 +6725,7 @@ model PaymentCollection {
 
   voucherId String?
 
-  voucher FinancialVoucher?
-    @relation(fields: [voucherId], references: [id])
-
-
+  voucher FinancialVoucher? @relation(fields: [voucherId], references: [id])
 
   //=========================
   // Source
@@ -7450,24 +6735,17 @@ model PaymentCollection {
 
   sourceRecordId String?
 
-
-
   //=========================
   // Student
   //=========================
 
   studentId String?
 
-
-
   //=========================
   // Amount
   //=========================
 
-  amount Decimal
-    @db.Decimal(15,2)
-
-
+  amount Decimal @db.Decimal(15, 2)
 
   //=========================
   // Payment Details
@@ -7485,8 +6763,6 @@ model PaymentCollection {
 
   chequeDate DateTime?
 
-
-
   //=========================
   // Online Gateway
   //=========================
@@ -7495,28 +6771,19 @@ model PaymentCollection {
 
   gatewayTransactionId String?
 
-
-
   //=========================
   // Receipt
   //=========================
 
   receiptNumber String?
 
-
-
   //=========================
   // Status
   //=========================
 
-  status PaymentCollectionStatus
-    @default(PENDING)
-
-
+  status PaymentCollectionStatus @default(PENDING)
 
   remarks String?
-
-
 
   //=========================
   // Audit
@@ -7524,29 +6791,20 @@ model PaymentCollection {
 
   collectedByUserId String?
 
-  createdAt DateTime
-    @default(now())
+  createdAt DateTime @default(now())
 
-  updatedAt DateTime
-    @updatedAt
-
-
+  updatedAt DateTime @updatedAt
 
   //=========================
   // Constraints
   //=========================
-
   @@index([schoolId])
-
   @@index([studentId])
-
   @@index([voucherId])
-
   @@index([paymentSource])
-
   @@index([status])
-
 }
+
 //======================================================================
 // SECTION 22.5
 // PAYROLL MANAGEMENT
@@ -7567,14 +6825,11 @@ model PaymentCollection {
 //
 //======================================================================
 
-
-
 //======================================================================
 // PAYROLL STATUS
 //======================================================================
 
 enum PayrollStatus {
-
   DRAFT
 
   PROCESSING
@@ -7584,37 +6839,28 @@ enum PayrollStatus {
   PAID
 
   CANCELLED
-
 }
-
-
 
 //======================================================================
 // SALARY COMPONENT TYPE
 //======================================================================
 
 enum SalaryComponentType {
-
   EARNING
 
   DEDUCTION
-
 }
-
-
 
 //======================================================================
 // SALARY COMPONENT
 //======================================================================
 
 model SalaryComponent {
-
   id String @id @default(cuid())
 
   schoolId String
 
-  school School
-    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   componentCode String
 
@@ -7632,32 +6878,27 @@ model SalaryComponent {
 
   updatedAt DateTime @updatedAt
 
+  EmployeeSalaryComponent EmployeeSalaryComponent[]
+
   @@unique([schoolId, componentCode])
-
 }
-
-
 
 //======================================================================
 // EMPLOYEE SALARY STRUCTURE
 //======================================================================
 
 model EmployeeSalaryStructure {
-
   id String @id @default(cuid())
 
   schoolId String
 
-  school School
-    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   employeeId String
 
-  basicSalary Decimal
-    @db.Decimal(15,2)
+  basicSalary Decimal @db.Decimal(15, 2)
 
-  grossSalary Decimal
-    @db.Decimal(15,2)
+  grossSalary Decimal @db.Decimal(15, 2)
 
   effectiveFrom DateTime
 
@@ -7669,31 +6910,27 @@ model EmployeeSalaryStructure {
 
   updatedAt DateTime @updatedAt
 
+  EmployeeSalaryComponent EmployeeSalaryComponent[]
+
   @@index([employeeId])
-
 }
-
-
 
 //======================================================================
 // PAYROLL PROCESS
 //======================================================================
 
 model PayrollProcess {
-
   id String @id @default(cuid())
 
   schoolId String
 
-  school School
-    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   payrollMonth Int
 
   payrollYear Int
 
-  payrollStatus PayrollStatus
-    @default(DRAFT)
+  payrollStatus PayrollStatus @default(DRAFT)
 
   processedDate DateTime?
 
@@ -7701,45 +6938,37 @@ model PayrollProcess {
 
   voucherId String?
 
-  voucher FinancialVoucher?
-    @relation(fields: [voucherId], references: [id])
+  voucher FinancialVoucher? @relation(fields: [voucherId], references: [id])
 
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
 
+  PayrollSlip PayrollSlip[]
+
   @@unique([schoolId, payrollMonth, payrollYear])
-
 }
-
-
 
 //======================================================================
 // PAYROLL SLIP
 //======================================================================
 
 model PayrollSlip {
-
   id String @id @default(cuid())
 
   payrollProcessId String
 
-  payrollProcess PayrollProcess
-    @relation(fields: [payrollProcessId], references: [id], onDelete: Cascade)
+  payrollProcess PayrollProcess @relation(fields: [payrollProcessId], references: [id], onDelete: Cascade)
 
   employeeId String
 
-  grossSalary Decimal
-    @db.Decimal(15,2)
+  grossSalary Decimal @db.Decimal(15, 2)
 
-  totalAllowance Decimal
-    @db.Decimal(15,2)
+  totalAllowance Decimal @db.Decimal(15, 2)
 
-  totalDeduction Decimal
-    @db.Decimal(15,2)
+  totalDeduction Decimal @db.Decimal(15, 2)
 
-  netSalary Decimal
-    @db.Decimal(15,2)
+  netSalary Decimal @db.Decimal(15, 2)
 
   generatedDate DateTime
 
@@ -7747,24 +6976,21 @@ model PayrollSlip {
 
   updatedAt DateTime @updatedAt
 
+  PayrollPayment PayrollPayment?
+
   @@index([employeeId])
-
 }
-
-
 
 //======================================================================
 // PAYROLL PAYMENT
 //======================================================================
 
 model PayrollPayment {
-
   id String @id @default(cuid())
 
   payrollSlipId String @unique
 
-  payrollSlip PayrollSlip
-    @relation(fields: [payrollSlipId], references: [id], onDelete: Cascade)
+  payrollSlip PayrollSlip @relation(fields: [payrollSlipId], references: [id], onDelete: Cascade)
 
   paymentDate DateTime?
 
@@ -7774,16 +7000,15 @@ model PayrollPayment {
 
   voucherId String?
 
-  voucher FinancialVoucher?
-    @relation(fields: [voucherId], references: [id])
+  voucher FinancialVoucher? @relation(fields: [voucherId], references: [id])
 
   remarks String?
 
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
-
 }
+
 //======================================================================
 // SECTION 22.5.1
 // EMPLOYEE SALARY COMPONENT
@@ -7799,7 +7024,6 @@ model PayrollPayment {
 //======================================================================
 
 model EmployeeSalaryComponent {
-
   //======================================================
   // Primary Key
   //======================================================
@@ -7812,8 +7036,7 @@ model EmployeeSalaryComponent {
 
   salaryStructureId String
 
-  salaryStructure EmployeeSalaryStructure
-    @relation(fields: [salaryStructureId], references: [id], onDelete: Cascade)
+  salaryStructure EmployeeSalaryStructure @relation(fields: [salaryStructureId], references: [id], onDelete: Cascade)
 
   //======================================================
   // Salary Component
@@ -7821,18 +7044,15 @@ model EmployeeSalaryComponent {
 
   salaryComponentId String
 
-  salaryComponent SalaryComponent
-    @relation(fields: [salaryComponentId], references: [id])
+  salaryComponent SalaryComponent @relation(fields: [salaryComponentId], references: [id])
 
   //======================================================
   // Component Amount
   //======================================================
 
-  amount Decimal
-    @db.Decimal(15,2)
+  amount Decimal @db.Decimal(15, 2)
 
-  percentage Decimal?
-    @db.Decimal(6,2)
+  percentage Decimal? @db.Decimal(6, 2)
 
   calculationFormula String?
 
@@ -7840,11 +7060,9 @@ model EmployeeSalaryComponent {
   // Settings
   //======================================================
 
-  isFixed Boolean
-    @default(true)
+  isFixed Boolean @default(true)
 
-  active Boolean
-    @default(true)
+  active Boolean @default(true)
 
   //======================================================
   // Audit
@@ -7857,14 +7075,11 @@ model EmployeeSalaryComponent {
   //======================================================
   // Constraints
   //======================================================
-
   @@unique([salaryStructureId, salaryComponentId])
-
   @@index([salaryStructureId])
-
   @@index([salaryComponentId])
-
-}//======================================================================
+}
+//======================================================================
 // SECTION 22.6
 // VENDOR & SUPPLIER MANAGEMENT
 //======================================================================
@@ -7883,30 +7098,23 @@ model EmployeeSalaryComponent {
 //
 //======================================================================
 
-
-
 //======================================================================
 // VENDOR STATUS
 //======================================================================
 
 enum VendorStatus {
-
   ACTIVE
 
   INACTIVE
 
   BLOCKED
-
 }
-
-
 
 //======================================================================
 // VENDOR CATEGORY
 //======================================================================
 
 enum VendorCategory {
-
   BOOKS
 
   NOTEBOOKS
@@ -7934,24 +7142,18 @@ enum VendorCategory {
   CONTRACTOR
 
   OTHER
-
 }
-
-
 
 //======================================================================
 // VENDOR MASTER
 //======================================================================
 
 model Vendor {
-
   //======================================================
   // PRIMARY KEY
   //======================================================
 
   id String @id @default(cuid())
-
-
 
   //======================================================
   // SCHOOL
@@ -7959,10 +7161,7 @@ model Vendor {
 
   schoolId String
 
-  school School
-    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-
-
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //======================================================
   // BASIC INFORMATION
@@ -7974,10 +7173,7 @@ model Vendor {
 
   category VendorCategory
 
-  status VendorStatus
-    @default(ACTIVE)
-
-
+  status VendorStatus @default(ACTIVE)
 
   //======================================================
   // CONTACT INFORMATION
@@ -7992,8 +7188,6 @@ model Vendor {
   email String?
 
   website String?
-
-
 
   //======================================================
   // ADDRESS
@@ -8013,8 +7207,6 @@ model Vendor {
 
   pinCode String?
 
-
-
   //======================================================
   // TAX DETAILS
   //======================================================
@@ -8022,8 +7214,6 @@ model Vendor {
   gstNumber String?
 
   panNumber String?
-
-
 
   //======================================================
   // BANK DETAILS
@@ -8039,20 +7229,13 @@ model Vendor {
 
   branchName String?
 
-
-
   //======================================================
   // FINANCIAL
   //======================================================
 
-  openingBalance Decimal
-    @default(0)
-    @db.Decimal(15,2)
+  openingBalance Decimal @default(0) @db.Decimal(15, 2)
 
-  creditLimit Decimal?
-    @db.Decimal(15,2)
-
-
+  creditLimit Decimal? @db.Decimal(15, 2)
 
   //======================================================
   // NOTES
@@ -8060,33 +7243,23 @@ model Vendor {
 
   remarks String?
 
-
-
   //======================================================
   // AUDIT
   //======================================================
 
-  createdAt DateTime
-    @default(now())
+  createdAt DateTime @default(now())
 
-  updatedAt DateTime
-    @updatedAt
-
-
+  updatedAt DateTime @updatedAt
 
   //======================================================
   // CONSTRAINTS
   //======================================================
-
   @@unique([schoolId, vendorCode])
-
   @@index([schoolId])
-
   @@index([category])
-
   @@index([status])
-
 }
+
 //======================================================================
 // SECTION 22.7
 // FINANCIAL RECONCILIATION
@@ -8100,14 +7273,11 @@ model Vendor {
 //
 //======================================================================
 
-
-
 //======================================================================
 // RECONCILIATION TYPE
 //======================================================================
 
 enum ReconciliationType {
-
   CASH
 
   BANK
@@ -8119,17 +7289,13 @@ enum ReconciliationType {
   VENDOR_LEDGER
 
   PAYROLL
-
 }
-
-
 
 //======================================================================
 // RECONCILIATION STATUS
 //======================================================================
 
 enum ReconciliationStatus {
-
   PENDING
 
   PARTIAL
@@ -8137,17 +7303,13 @@ enum ReconciliationStatus {
   COMPLETED
 
   MISMATCH
-
 }
-
-
 
 //======================================================================
 // FINANCIAL RECONCILIATION
 //======================================================================
 
 model FinancialReconciliation {
-
   id String @id @default(cuid())
 
   //======================================================
@@ -8156,10 +7318,7 @@ model FinancialReconciliation {
 
   schoolId String
 
-  school School
-    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-
-
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   //======================================================
   // BASIC INFORMATION
@@ -8171,35 +7330,23 @@ model FinancialReconciliation {
 
   reconciliationDate DateTime
 
-
-
   //======================================================
   // AMOUNTS
   //======================================================
 
-  systemAmount Decimal
-    @db.Decimal(15,2)
+  systemAmount Decimal @db.Decimal(15, 2)
 
-  actualAmount Decimal
-    @db.Decimal(15,2)
+  actualAmount Decimal @db.Decimal(15, 2)
 
-  differenceAmount Decimal
-    @db.Decimal(15,2)
-
-
+  differenceAmount Decimal @db.Decimal(15, 2)
 
   //======================================================
   // STATUS
   //======================================================
 
-  status ReconciliationStatus
-    @default(PENDING)
-
-
+  status ReconciliationStatus @default(PENDING)
 
   remarks String?
-
-
 
   //======================================================
   // AUDIT
@@ -8213,21 +7360,15 @@ model FinancialReconciliation {
 
   updatedAt DateTime @updatedAt
 
-
-
   //======================================================
   // CONSTRAINTS
   //======================================================
-
   @@unique([schoolId, reconciliationNumber])
-
   @@index([schoolId])
-
   @@index([reconciliationType])
-
   @@index([status])
-
 }
+
 //======================================================================
 // END OF SCHEMA
 //======================================================================
