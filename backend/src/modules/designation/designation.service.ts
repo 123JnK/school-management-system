@@ -3,6 +3,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
+import { PaginationQueryDto } from '../../common/pagination/pagination-query.dto';
+
 import { DesignationRepository } from './repository/designation.repository';
 
 import { CreateDesignationDto } from './dto/create-designation.dto';
@@ -26,15 +28,31 @@ export class DesignationService {
 
   async findAll(
     schoolId: string,
+    paginationQuery: PaginationQueryDto,
+    search?: string,
   ) {
+    const page = paginationQuery.page ?? 1;
+    const limit = paginationQuery.limit ?? 10;
+    const normalizedSearch =
+      search?.trim() || undefined;
+
     return this.designationRepository.findAll(
       schoolId,
+      page,
+      limit,
+      normalizedSearch,
     );
   }
 
-  async findOne(id: string) {
+  async findOne(
+    id: string,
+    schoolId: string,
+  ) {
     const designation =
-      await this.designationRepository.findById(id);
+      await this.designationRepository.findByIdAndSchool(
+        id,
+        schoolId,
+      );
 
     if (!designation) {
       throw new NotFoundException(
@@ -48,8 +66,12 @@ export class DesignationService {
   async update(
     id: string,
     dto: UpdateDesignationDto,
+    schoolId: string,
   ) {
-    await this.findOne(id);
+    await this.findOne(
+      id,
+      schoolId,
+    );
 
     return this.designationRepository.update(
       id,
@@ -57,9 +79,17 @@ export class DesignationService {
     );
   }
 
-  async remove(id: string) {
-    await this.findOne(id);
+  async remove(
+    id: string,
+    schoolId: string,
+  ) {
+    await this.findOne(
+      id,
+      schoolId,
+    );
 
-    return this.designationRepository.delete(id);
+    return this.designationRepository.delete(
+      id,
+    );
   }
 }

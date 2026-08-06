@@ -3,6 +3,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
+import { PaginationQueryDto } from '../../common/pagination/pagination-query.dto';
+
 import { DepartmentRepository } from './repository/department.repository';
 
 import { CreateDepartmentDto } from './dto/create-department.dto';
@@ -26,16 +28,29 @@ export class DepartmentService {
 
   async findAll(
     schoolId: string,
+    paginationQuery: PaginationQueryDto,
+    search?: string,
   ) {
+    const page = paginationQuery.page ?? 1;
+    const limit = paginationQuery.limit ?? 10;
+    const normalizedSearch = search?.trim() || undefined;
+
     return this.departmentRepository.findAll(
       schoolId,
+      page,
+      limit,
+      normalizedSearch,
     );
   }
 
-  async findOne(id: string) {
+  async findOne(
+    id: string,
+    schoolId: string,
+  ) {
     const department =
-      await this.departmentRepository.findById(
+      await this.departmentRepository.findByIdAndSchool(
         id,
+        schoolId,
       );
 
     if (!department) {
@@ -50,8 +65,9 @@ export class DepartmentService {
   async update(
     id: string,
     dto: UpdateDepartmentDto,
+    schoolId: string,
   ) {
-    await this.findOne(id);
+    await this.findOne(id, schoolId);
 
     return this.departmentRepository.update(
       id,
@@ -59,8 +75,11 @@ export class DepartmentService {
     );
   }
 
-  async remove(id: string) {
-    await this.findOne(id);
+  async remove(
+    id: string,
+    schoolId: string,
+  ) {
+    await this.findOne(id, schoolId);
 
     return this.departmentRepository.delete(id);
   }
