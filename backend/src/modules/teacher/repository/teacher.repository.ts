@@ -8,6 +8,9 @@ import {
 
 import { PrismaService } from '../../../prisma/prisma.service';
 
+import { PaginationDto } from '../../../common/pagination/pagination.dto';
+import { paginate } from '../../../common/pagination/pagination.util';
+
 @Injectable()
 export class TeacherRepository {
   constructor(
@@ -32,15 +35,94 @@ export class TeacherRepository {
 
   async findAllBySchool(
     schoolId: string,
-  ): Promise<Teacher[]> {
-    return this.prisma.teacher.findMany({
-      where: {
-        schoolId,
-      },
-      orderBy: {
-        teacherCode: 'asc',
-      },
-    });
+    page: number,
+    limit: number,
+    search?: string,
+  ): Promise<PaginationDto<Teacher>> {
+    const where: Prisma.TeacherWhereInput = {
+      schoolId,
+      teacherStatus: TeacherStatus.ACTIVE,
+      ...(search
+        ? {
+            OR: [
+              {
+                teacherCode: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                employeeNumber: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                specialization: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                employee: {
+                  is: {
+                    firstName: {
+                      contains: search,
+                      mode: 'insensitive',
+                    },
+                  },
+                },
+              },
+              {
+                employee: {
+                  is: {
+                    lastName: {
+                      contains: search,
+                      mode: 'insensitive',
+                    },
+                  },
+                },
+              },
+              {
+                employee: {
+                  is: {
+                    mobile: {
+                      contains: search,
+                      mode: 'insensitive',
+                    },
+                  },
+                },
+              },
+              {
+                employee: {
+                  is: {
+                    email: {
+                      contains: search,
+                      mode: 'insensitive',
+                    },
+                  },
+                },
+              },
+            ],
+          }
+        : {}),
+    };
+
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.teacher.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: {
+          teacherCode: 'asc',
+        },
+      }),
+      this.prisma.teacher.count({ where }),
+    ]);
+
+    return paginate(data, total, page, limit);
   }
 
   //==================================================
@@ -53,6 +135,19 @@ export class TeacherRepository {
     return this.prisma.teacher.findUnique({
       where: {
         id,
+      },
+    });
+  }
+
+  async findByIdAndSchool(
+    id: string,
+    schoolId: string,
+  ): Promise<Teacher | null> {
+    return this.prisma.teacher.findFirst({
+      where: {
+        id,
+        schoolId,
+        teacherStatus: TeacherStatus.ACTIVE,
       },
     });
   }

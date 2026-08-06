@@ -15,6 +15,8 @@ import {
 
 import { PrismaService } from '../../prisma/prisma.service';
 
+import { PaginationQueryDto } from '../../common/pagination/pagination-query.dto';
+
 import { TeacherRepository } from './repository/teacher.repository';
 
 import { CreateTeacherDto } from './dto/create-teacher.dto';
@@ -216,9 +218,20 @@ export class TeacherService {
   // FIND ALL
   //--------------------------------------------------------
 
-  async findAll(schoolId: string) {
+  async findAll(
+    schoolId: string,
+    paginationQuery: PaginationQueryDto,
+    search?: string,
+  ) {
+    const page = paginationQuery.page ?? 1;
+    const limit = paginationQuery.limit ?? 10;
+    const normalizedSearch = search?.trim() || undefined;
+
     return this.teacherRepository.findAllBySchool(
       schoolId,
+      page,
+      limit,
+      normalizedSearch,
     );
   }
 
@@ -226,10 +239,16 @@ export class TeacherService {
   // FIND ONE
   //--------------------------------------------------------
 
-  async findOne(id: string) {
+  async findOne(
+    id: string,
+    schoolId: string,
+  ) {
 
     const teacher =
-      await this.teacherRepository.findById(id);
+      await this.teacherRepository.findByIdAndSchool(
+        id,
+        schoolId,
+      );
 
     if (!teacher) {
       throw new NotFoundException(
@@ -247,16 +266,10 @@ export class TeacherService {
   async update(
     id: string,
     dto: UpdateTeacherDto,
+    schoolId: string,
   ) {
 
-    const teacher =
-      await this.teacherRepository.findById(id);
-
-    if (!teacher) {
-      throw new NotFoundException(
-        'Teacher not found',
-      );
-    }
+    await this.findOne(id, schoolId);
 
     return this.teacherRepository.update(
       id,
@@ -271,16 +284,10 @@ export class TeacherService {
   async remove(
     id: string,
     deletedBy: string,
+    schoolId: string,
   ) {
 
-    const teacher =
-      await this.teacherRepository.findById(id);
-
-    if (!teacher) {
-      throw new NotFoundException(
-        'Teacher not found',
-      );
-    }
+    await this.findOne(id, schoolId);
 
     return this.teacherRepository.softDelete(
       id,
