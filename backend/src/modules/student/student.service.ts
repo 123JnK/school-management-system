@@ -12,6 +12,8 @@ import {
 
 import { PrismaService } from '../../prisma/prisma.service';
 
+import { PaginationQueryDto } from '../../common/pagination/pagination-query.dto';
+
 import { StudentRepository } from './repository/student.repository';
 
 import { CreateStudentDto } from './dto/create-student.dto';
@@ -115,15 +117,32 @@ export class StudentService {
     });
   }
 
-  async findAll(schoolId: string) {
+  async findAll(
+    schoolId: string,
+    paginationQuery: PaginationQueryDto,
+    search?: string,
+  ) {
+    const page = paginationQuery.page ?? 1;
+    const limit = paginationQuery.limit ?? 10;
+    const normalizedSearch = search?.trim() || undefined;
+
     return this.studentRepository.findAllBySchool(
       schoolId,
+      page,
+      limit,
+      normalizedSearch,
     );
   }
 
-  async findOne(id: string) {
+  async findOne(
+    id: string,
+    schoolId: string,
+  ) {
     const student =
-      await this.studentRepository.findById(id);
+      await this.studentRepository.findByIdAndSchool(
+        id,
+        schoolId,
+      );
 
     if (!student) {
       throw new NotFoundException(
@@ -137,9 +156,13 @@ export class StudentService {
   async update(
     id: string,
     dto: UpdateStudentDto,
+    schoolId: string,
   ) {
     const student =
-      await this.studentRepository.findById(id);
+      await this.studentRepository.findByIdAndSchool(
+        id,
+        schoolId,
+      );
 
     if (!student) {
       throw new NotFoundException(
@@ -161,19 +184,17 @@ export class StudentService {
   async remove(
     id: string,
     deletedBy: string,
+    schoolId: string,
   ) {
     const student =
-      await this.studentRepository.findById(id);
+      await this.studentRepository.findByIdAndSchool(
+        id,
+        schoolId,
+      );
 
     if (!student) {
       throw new NotFoundException(
         'Student not found',
-      );
-    }
-
-    if (student.isDeleted) {
-      throw new BadRequestException(
-        'Student already deleted',
       );
     }
 

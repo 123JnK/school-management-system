@@ -7,6 +7,9 @@ import {
 
 import { PrismaService } from '../../../prisma/prisma.service';
 
+import { PaginationDto } from '../../../common/pagination/pagination.dto';
+import { paginate } from '../../../common/pagination/pagination.util';
+
 @Injectable()
 export class StudentRepository {
   constructor(
@@ -23,16 +26,66 @@ export class StudentRepository {
 
   async findAllBySchool(
     schoolId: string,
-  ): Promise<Student[]> {
-    return this.prisma.student.findMany({
-      where: {
-        schoolId,
-        isDeleted: false,
-      },
-      orderBy: {
-        admissionNo: 'asc',
-      },
-    });
+    page: number,
+    limit: number,
+    search?: string,
+  ): Promise<PaginationDto<Student>> {
+    const where: Prisma.StudentWhereInput = {
+      schoolId,
+      isDeleted: false,
+      ...(search
+        ? {
+            OR: [
+              {
+                admissionNo: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                firstName: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                lastName: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                mobile: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                email: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+            ],
+          }
+        : {}),
+    };
+
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.student.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: {
+          admissionNo: 'asc',
+        },
+      }),
+      this.prisma.student.count({ where }),
+    ]);
+
+    return paginate(data, total, page, limit);
   }
 
   async findById(
@@ -41,6 +94,19 @@ export class StudentRepository {
     return this.prisma.student.findUnique({
       where: {
         id,
+      },
+    });
+  }
+
+  async findByIdAndSchool(
+    id: string,
+    schoolId: string,
+  ): Promise<Student | null> {
+    return this.prisma.student.findFirst({
+      where: {
+        id,
+        schoolId,
+        isDeleted: false,
       },
     });
   }
