@@ -8,6 +8,8 @@ import {
   Post,
 } from '@nestjs/common';
 
+import { SchoolId } from '../../common/decorators/school-id.decorator';
+
 import { StudentService } from './student.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
@@ -21,19 +23,20 @@ export class StudentController {
   @Post()
   create(
     @Body() createStudentDto: CreateStudentDto,
+    @SchoolId() schoolId: string,
   ) {
-    // Temporary schoolId
     return this.studentService.create(
       createStudentDto,
-      'TEMP_SCHOOL_ID',
+      schoolId,
     );
   }
 
   @Get()
-  findAll() {
-    // Temporary schoolId
+  findAll(
+    @SchoolId() schoolId: string,
+  ) {
     return this.studentService.findAll(
-      'TEMP_SCHOOL_ID',
+      schoolId,
     );
   }
 

@@ -8,6 +8,8 @@ import {
   Post,
 } from '@nestjs/common';
 
+import { SchoolId } from '../../common/decorators/school-id.decorator';
+
 import { DesignationService } from './designation.service';
 
 import { CreateDesignationDto } from './dto/create-designation.dto';
@@ -22,11 +24,8 @@ export class DesignationController {
   @Post()
   create(
     @Body() dto: CreateDesignationDto,
+    @SchoolId() schoolId: string,
   ) {
-    // Temporary schoolId.
-    // Later this will come from JWT authentication.
-    const schoolId = 'TEMP_SCHOOL_ID';
-
     return this.designationService.create(
       schoolId,
       dto,
@@ -34,9 +33,9 @@ export class DesignationController {
   }
 
   @Get()
-  findAll() {
-    const schoolId = 'TEMP_SCHOOL_ID';
-
+  findAll(
+    @SchoolId() schoolId: string,
+  ) {
     return this.designationService.findAll(
       schoolId,
     );

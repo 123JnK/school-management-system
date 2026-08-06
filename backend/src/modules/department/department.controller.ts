@@ -8,6 +8,8 @@ import {
   Post,
 } from '@nestjs/common';
 
+import { SchoolId } from '../../common/decorators/school-id.decorator';
+
 import { DepartmentService } from './department.service';
 
 import { CreateDepartmentDto } from './dto/create-department.dto';
@@ -22,11 +24,8 @@ export class DepartmentController {
   @Post()
   create(
     @Body() dto: CreateDepartmentDto,
+    @SchoolId() schoolId: string,
   ) {
-    // Temporary hardcoded schoolId.
-    // Later this will come from the authenticated JWT.
-    const schoolId = 'TEMP_SCHOOL_ID';
-
     return this.departmentService.create(
       schoolId,
       dto,
@@ -34,9 +33,9 @@ export class DepartmentController {
   }
 
   @Get()
-  findAll() {
-    const schoolId = 'TEMP_SCHOOL_ID';
-
+  findAll(
+    @SchoolId() schoolId: string,
+  ) {
     return this.departmentService.findAll(
       schoolId,
     );
