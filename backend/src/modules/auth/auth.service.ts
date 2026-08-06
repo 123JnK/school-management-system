@@ -4,7 +4,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { UserRole } from '@prisma/client';
+import { User, UserRole } from '@prisma/client';
 
 import { PrismaService } from '../../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
@@ -25,12 +25,9 @@ export class AuthService {
       password,
     } = registerDto;
 
-    const existingUser =
-      await this.prisma.user.findUnique({
-        where: {
-          email,
-        },
-      });
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email },
+    });
 
     if (existingUser) {
       throw new BadRequestException(
@@ -38,23 +35,20 @@ export class AuthService {
       );
     }
 
-    const hashedPassword =
-      await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const schoolCode =
       'SCH' + Date.now().toString().slice(-6);
 
-    const school =
-      await this.prisma.school.create({
-        data: {
-          name: schoolName,
-          code: schoolCode,
-          email,
-        },
-      });
+    const school = await this.prisma.school.create({
+      data: {
+        name: schoolName,
+        code: schoolCode,
+        email,
+      },
+    });
 
-    const names =
-      adminName.trim().split(' ');
+    const names = adminName.trim().split(' ');
 
     const firstName = names[0];
 
@@ -63,44 +57,33 @@ export class AuthService {
         ? names.slice(1).join(' ')
         : null;
 
-    const user =
-      await this.prisma.user.create({
-        data: {
-          email,
-          password: hashedPassword,
-          firstName,
-          lastName,
-          role: UserRole.SCHOOL_ADMIN,
-          schoolId: school.id,
-        },
-      });
+    const user = await this.prisma.user.create({
+      data: {
+        email,
+        password: hashedPassword,
+        firstName,
+        lastName,
+        role: UserRole.SCHOOL_ADMIN,
+        schoolId: school.id,
+      },
+    });
+
+    const tokens = await this.generateTokens(user);
 
     return {
       success: true,
       message: 'School registered successfully',
-
-      school,
-
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-        schoolId: user.schoolId,
-      },
+      accessToken: tokens.accessToken,
+      user: this.sanitizeUser(user),
     };
   }
 
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
 
-    const user =
-      await this.prisma.user.findUnique({
-        where: {
-          email,
-        },
-      });
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
 
     if (!user) {
       throw new BadRequestException(
@@ -114,18 +97,35 @@ export class AuthService {
       );
     }
 
-    const passwordMatched =
-      await bcrypt.compare(
-        password,
-        user.password,
-      );
+    const matched = await bcrypt.compare(
+      password,
+      user.password,
+    );
 
-    if (!passwordMatched) {
+    if (!matched) {
       throw new BadRequestException(
         'Invalid email or password',
       );
     }
 
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        lastLogin: new Date(),
+      },
+    });
+
+    const tokens = await this.generateTokens(user);
+
+    return {
+      success: true,
+      message: 'Login successful',
+      accessToken: tokens.accessToken,
+      user: this.sanitizeUser(user),
+    };
+  }
+
+  private async generateTokens(user: User) {
     const payload = {
       sub: user.id,
       email: user.email,
@@ -134,24 +134,22 @@ export class AuthService {
     };
 
     const accessToken =
-      await this.jwtService.signAsync(
-        payload,
-      );
+      await this.jwtService.signAsync(payload);
 
     return {
-      success: true,
-      message: 'Login successful',
-
       accessToken,
+    };
+  }
 
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-        schoolId: user.schoolId,
-      },
+  private sanitizeUser(user: User) {
+    return {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+      schoolId: user.schoolId,
+      isActive: user.isActive,
     };
   }
 }
