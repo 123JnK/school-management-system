@@ -7,6 +7,9 @@ import {
 
 import { PrismaService } from '../../../prisma/prisma.service';
 
+import { PaginationDto } from '../../../common/pagination/pagination.dto';
+import { paginate } from '../../../common/pagination/pagination.util';
+
 @Injectable()
 export class EmployeeRepository {
   constructor(
@@ -23,14 +26,79 @@ export class EmployeeRepository {
 
   async findAllBySchool(
     schoolId: string,
-  ): Promise<Employee[]> {
-    return this.prisma.employee.findMany({
+    page: number,
+    limit: number,
+    search?: string,
+  ): Promise<PaginationDto<Employee>> {
+    const where: Prisma.EmployeeWhereInput = {
+      schoolId,
+      isDeleted: false,
+      ...(search
+        ? {
+            OR: [
+              {
+                employeeCode: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                firstName: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                lastName: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                mobile: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                email: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+            ],
+          }
+        : {}),
+    };
+
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.employee.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: {
+          employeeCode: 'asc',
+        },
+        include: {
+          user: true,
+          department: true,
+          designation: true,
+        },
+      }),
+      this.prisma.employee.count({ where }),
+    ]);
+
+    return paginate(data, total, page, limit);
+  }
+
+  async findById(
+    id: string,
+  ): Promise<Employee | null> {
+    return this.prisma.employee.findUnique({
       where: {
-        schoolId,
-        isDeleted: false,
-      },
-      orderBy: {
-        employeeCode: 'asc',
+        id,
       },
       include: {
         user: true,
@@ -40,12 +108,15 @@ export class EmployeeRepository {
     });
   }
 
-  async findById(
+  async findByIdAndSchool(
     id: string,
+    schoolId: string,
   ): Promise<Employee | null> {
-    return this.prisma.employee.findUnique({
+    return this.prisma.employee.findFirst({
       where: {
         id,
+        schoolId,
+        isDeleted: false,
       },
       include: {
         user: true,

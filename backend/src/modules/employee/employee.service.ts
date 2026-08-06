@@ -13,6 +13,9 @@ import {
 } from '@prisma/client';
 
 import { PrismaService } from '../../prisma/prisma.service';
+
+import { PaginationQueryDto } from '../../common/pagination/pagination-query.dto';
+
 import { EmployeeRepository } from './repository/employee.repository';
 
 import { CreateEmployeeDto } from './dto/create-employee.dto';
@@ -129,17 +132,30 @@ export class EmployeeService {
 
   async findAll(
     schoolId: string,
+    paginationQuery: PaginationQueryDto,
+    search?: string,
   ) {
+    const page = paginationQuery.page ?? 1;
+    const limit = paginationQuery.limit ?? 10;
+    const normalizedSearch = search?.trim() || undefined;
+
     return this.employeeRepository.findAllBySchool(
       schoolId,
+      page,
+      limit,
+      normalizedSearch,
     );
   }
 
   async findOne(
     id: string,
+    schoolId: string,
   ) {
     const employee =
-      await this.employeeRepository.findById(id);
+      await this.employeeRepository.findByIdAndSchool(
+        id,
+        schoolId,
+      );
 
     if (!employee) {
       throw new NotFoundException(
@@ -153,8 +169,9 @@ export class EmployeeService {
   async update(
     id: string,
     dto: UpdateEmployeeDto,
+    schoolId: string,
   ) {
-    await this.findOne(id);
+    await this.findOne(id, schoolId);
 
     return this.employeeRepository.update(
       id,
@@ -165,8 +182,9 @@ export class EmployeeService {
   async remove(
     id: string,
     deletedBy: string,
+    schoolId: string,
   ) {
-    await this.findOne(id);
+    await this.findOne(id, schoolId);
 
     return this.employeeRepository.softDelete(
       id,

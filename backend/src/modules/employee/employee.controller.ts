@@ -6,7 +6,11 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
+
+import { SchoolId } from '../../common/decorators/school-id.decorator';
+import { PaginationQueryDto } from '../../common/pagination/pagination-query.dto';
 
 import { EmployeeService } from './employee.service';
 
@@ -22,49 +26,60 @@ export class EmployeeController {
   @Post()
   create(
     @Body() createEmployeeDto: CreateEmployeeDto,
+    @SchoolId() schoolId: string,
   ) {
-    // TODO:
-    // Replace the hardcoded schoolId with JWT schoolId
     return this.employeeService.create(
       createEmployeeDto,
-      'demo-school-id',
+      schoolId,
     );
   }
 
   @Get()
-  findAll() {
-    // TODO:
-    // Replace with schoolId from JWT
+  findAll(
+    @SchoolId() schoolId: string,
+    @Query() paginationQuery: PaginationQueryDto,
+    @Query('search') search?: string,
+  ) {
     return this.employeeService.findAll(
-      'demo-school-id',
+      schoolId,
+      paginationQuery,
+      search,
     );
   }
 
   @Get(':id')
   findOne(
     @Param('id') id: string,
+    @SchoolId() schoolId: string,
   ) {
-    return this.employeeService.findOne(id);
+    return this.employeeService.findOne(
+      id,
+      schoolId,
+    );
   }
 
   @Patch(':id')
   update(
     @Param('id') id: string,
     @Body() updateEmployeeDto: UpdateEmployeeDto,
+    @SchoolId() schoolId: string,
   ) {
     return this.employeeService.update(
       id,
       updateEmployeeDto,
+      schoolId,
     );
   }
 
   @Delete(':id')
   remove(
     @Param('id') id: string,
+    @SchoolId() schoolId: string,
   ) {
     return this.employeeService.remove(
       id,
       'system',
+      schoolId,
     );
   }
 }
