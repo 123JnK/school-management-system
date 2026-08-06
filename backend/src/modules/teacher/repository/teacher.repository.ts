@@ -14,16 +14,21 @@ export class TeacherRepository {
     private readonly prisma: PrismaService,
   ) {}
 
+  //==================================================
+  // CREATE
+  //==================================================
+
   async create(
     data: Prisma.TeacherCreateInput,
   ): Promise<Teacher> {
     return this.prisma.teacher.create({
       data,
-      include: {
-        user: true,
-      },
     });
   }
+
+  //==================================================
+  // FIND ALL BY SCHOOL
+  //==================================================
 
   async findAllBySchool(
     schoolId: string,
@@ -31,16 +36,16 @@ export class TeacherRepository {
     return this.prisma.teacher.findMany({
       where: {
         schoolId,
-        isDeleted: false,
       },
       orderBy: {
         teacherCode: 'asc',
       },
-      include: {
-        user: true,
-      },
     });
   }
+
+  //==================================================
+  // FIND BY ID
+  //==================================================
 
   async findById(
     id: string,
@@ -49,11 +54,12 @@ export class TeacherRepository {
       where: {
         id,
       },
-      include: {
-        user: true,
-      },
     });
   }
+
+  //==================================================
+  // FIND BY TEACHER CODE
+  //==================================================
 
   async findByTeacherCode(
     schoolId: string,
@@ -63,10 +69,13 @@ export class TeacherRepository {
       where: {
         schoolId,
         teacherCode,
-        isDeleted: false,
       },
     });
   }
+
+  //==================================================
+  // FIND USER BY EMAIL
+  //==================================================
 
   async findByEmail(
     email: string,
@@ -78,6 +87,10 @@ export class TeacherRepository {
     });
   }
 
+  //==================================================
+  // UPDATE
+  //==================================================
+
   async update(
     id: string,
     data: Prisma.TeacherUpdateInput,
@@ -87,34 +100,29 @@ export class TeacherRepository {
         id,
       },
       data,
-      include: {
-        user: true,
-      },
     });
   }
+
+  //==================================================
+  // SOFT DELETE
+  //==================================================
 
   async softDelete(
     id: string,
     deletedBy: string,
   ): Promise<Teacher> {
+
+    // Reserved for future audit implementation
+    void deletedBy;
+
     return this.prisma.teacher.update({
       where: {
         id,
       },
       data: {
-        status: TeacherStatus.RESIGNED,
-        isDeleted: true,
-        deletedAt: new Date(),
-        deletedBy,
-        user: {
-          update: {
-            isActive: false,
-          },
-        },
-      },
-      include: {
-        user: true,
+        teacherStatus: TeacherStatus.RESIGNED,
       },
     });
+
   }
 }

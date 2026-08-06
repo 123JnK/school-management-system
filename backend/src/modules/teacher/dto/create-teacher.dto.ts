@@ -6,16 +6,21 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsUUID,
   Min,
   MinLength,
 } from 'class-validator';
 
-import { EmploymentType } from '@prisma/client';
+import {
+  EmploymentType,
+  Gender,
+} from '@prisma/client';
 
 export class CreateTeacherDto {
-  @IsString()
-  @IsNotEmpty()
-  teacherCode: string;
+
+  //----------------------------------------------------
+  // USER
+  //----------------------------------------------------
 
   @IsEmail()
   email: string;
@@ -23,6 +28,14 @@ export class CreateTeacherDto {
   @IsString()
   @MinLength(6)
   password: string;
+
+  //----------------------------------------------------
+  // EMPLOYEE
+  //----------------------------------------------------
+
+  @IsString()
+  @IsNotEmpty()
+  employeeCode: string;
 
   @IsString()
   @IsNotEmpty()
@@ -33,20 +46,39 @@ export class CreateTeacherDto {
   lastName?: string;
 
   @IsOptional()
-  @IsString()
-  phone?: string;
+  @IsEnum(Gender)
+  gender?: Gender;
 
   @IsOptional()
   @IsString()
-  gender?: string;
+  mobile?: string;
 
   @IsOptional()
   @IsString()
-  designation?: string;
+  address?: string;
 
   @IsOptional()
   @IsString()
-  department?: string;
+  emergencyContact?: string;
+
+  @IsOptional()
+  @IsUUID()
+  departmentId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  designationId?: string;
+
+  @IsDateString()
+  joiningDate: string;
+
+  @IsOptional()
+  @IsEnum(EmploymentType)
+  employmentType?: EmploymentType;
+
+  @IsOptional()
+  @IsDateString()
+  dateOfBirth?: string;
 
   @IsOptional()
   @IsString()
@@ -58,29 +90,51 @@ export class CreateTeacherDto {
   experienceYears?: number;
 
   @IsOptional()
-  @IsEnum(EmploymentType)
-  employmentType?: EmploymentType;
-
-  @IsDateString()
-  joiningDate: string;
-
-  @IsOptional()
-  @IsDateString()
-  dateOfBirth?: string;
-
-  @IsOptional()
   @IsString()
   bloodGroup?: string;
 
   @IsOptional()
   @IsString()
-  address?: string;
+  profilePhoto?: string;
+
+  //----------------------------------------------------
+  // TEACHER
+  //----------------------------------------------------
+
+  @IsString()
+  @IsNotEmpty()
+  teacherCode: string;
 
   @IsOptional()
   @IsString()
-  emergencyContact?: string;
+  employeeNumber?: string;
 
   @IsOptional()
   @IsString()
-  photo?: string;
+  highestQualification?: string;
+
+  @IsOptional()
+  @IsString()
+  specialization?: string;
+
+  @IsOptional()
+  @IsString()
+  university?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  teachingExperience?: number;
+
+  @IsOptional()
+  @IsString()
+  boardRegistrationNo?: string;
+
+  @IsOptional()
+  @IsString()
+  aadhaarNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  panNumber?: string;
 }

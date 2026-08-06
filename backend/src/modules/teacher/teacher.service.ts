@@ -8,6 +8,7 @@ import * as bcrypt from 'bcrypt';
 
 import {
   EmploymentType,
+  EmployeeStatus,
   TeacherStatus,
   UserRole,
 } from '@prisma/client';
@@ -26,16 +27,20 @@ export class TeacherService {
     private readonly teacherRepository: TeacherRepository,
   ) {}
 
+  //--------------------------------------------------------
+  // CREATE TEACHER
+  //--------------------------------------------------------
+
   async create(
     createTeacherDto: CreateTeacherDto,
     schoolId: string,
   ) {
-    const existingEmail =
+    const existingUser =
       await this.teacherRepository.findByEmail(
         createTeacherDto.email,
       );
 
-    if (existingEmail) {
+    if (existingUser) {
       throw new BadRequestException(
         'Email already exists',
       );
@@ -49,7 +54,7 @@ export class TeacherService {
 
     if (existingTeacher) {
       throw new BadRequestException(
-        'Teacher code already exists',
+        'Teacher Code already exists',
       );
     }
 
@@ -59,49 +64,57 @@ export class TeacherService {
     );
 
     return this.prisma.$transaction(async (tx) => {
+
+      //----------------------------------------------------
+      // USER
+      //----------------------------------------------------
+
       const user = await tx.user.create({
         data: {
           email: createTeacherDto.email,
           password: hashedPassword,
+
           firstName: createTeacherDto.firstName,
           lastName: createTeacherDto.lastName,
-          phone: createTeacherDto.phone,
+
+          mobile: createTeacherDto.mobile,
+
           gender: createTeacherDto.gender,
-          role: UserRole.TEACHER,
+
           schoolId,
+
+          role: UserRole.EMPLOYEE,
         },
       });
 
-      const teacher = await tx.teacher.create({
+      //----------------------------------------------------
+      // EMPLOYEE
+      //----------------------------------------------------
+
+      const employee = await tx.employee.create({
         data: {
-          teacherCode: createTeacherDto.teacherCode,
-          userId: user.id,
+
           schoolId,
 
-          designation:
-            createTeacherDto.designation,
+          userId: user.id,
 
-          department:
-            createTeacherDto.department,
+          employeeCode:
+            createTeacherDto.employeeCode,
 
-          qualification:
-            createTeacherDto.qualification,
+          firstName:
+            createTeacherDto.firstName,
 
-          experienceYears:
-            createTeacherDto.experienceYears,
+          lastName:
+            createTeacherDto.lastName,
 
-          employmentType:
-            createTeacherDto.employmentType ??
-            EmploymentType.FULL_TIME,
+          gender:
+            createTeacherDto.gender,
 
-          joiningDate:
-            createTeacherDto.joiningDate,
+          mobile:
+            createTeacherDto.mobile,
 
-          dateOfBirth:
-            createTeacherDto.dateOfBirth,
-
-          bloodGroup:
-            createTeacherDto.bloodGroup,
+          email:
+            createTeacherDto.email,
 
           address:
             createTeacherDto.address,
@@ -109,12 +122,88 @@ export class TeacherService {
           emergencyContact:
             createTeacherDto.emergencyContact,
 
-          photo:
-            createTeacherDto.photo,
+          joiningDate:
+            new Date(createTeacherDto.joiningDate),
 
-          status: TeacherStatus.ACTIVE,
+          employmentType:
+            createTeacherDto.employmentType ??
+            EmploymentType.FULL_TIME,
+
+          status:
+            EmployeeStatus.ACTIVE,
+
+          departmentId:
+            createTeacherDto.departmentId,
+
+          designationId:
+            createTeacherDto.designationId,
+
+          qualification:
+            createTeacherDto.qualification,
+
+          experienceYears:
+            createTeacherDto.experienceYears,
+
+          bloodGroup:
+            createTeacherDto.bloodGroup,
+
+          profilePhoto:
+            createTeacherDto.profilePhoto,
+
+          dateOfBirth:
+            createTeacherDto.dateOfBirth
+              ? new Date(createTeacherDto.dateOfBirth)
+              : null,
         },
       });
+
+      //----------------------------------------------------
+      // TEACHER
+      //----------------------------------------------------
+
+      const teacher =
+        await tx.teacher.create({
+          data: {
+
+            employeeId:
+              employee.id,
+
+            schoolId,
+
+            teacherCode:
+              createTeacherDto.teacherCode,
+
+            employeeNumber:
+              createTeacherDto.employeeNumber,
+
+            joiningDate:
+              new Date(createTeacherDto.joiningDate),
+
+            teacherStatus:
+              TeacherStatus.ACTIVE,
+
+            highestQualification:
+              createTeacherDto.highestQualification,
+
+            specialization:
+              createTeacherDto.specialization,
+
+            university:
+              createTeacherDto.university,
+
+            teachingExperience:
+              createTeacherDto.teachingExperience,
+
+            boardRegistrationNo:
+              createTeacherDto.boardRegistrationNo,
+
+            aadhaarNumber:
+              createTeacherDto.aadhaarNumber,
+
+            panNumber:
+              createTeacherDto.panNumber,
+          },
+        });
 
       return {
         message: 'Teacher created successfully',
@@ -123,17 +212,22 @@ export class TeacherService {
     });
   }
 
-  async findAll(
-    schoolId: string,
-  ) {
+  //--------------------------------------------------------
+  // FIND ALL
+  //--------------------------------------------------------
+
+  async findAll(schoolId: string) {
     return this.teacherRepository.findAllBySchool(
       schoolId,
     );
   }
 
-  async findOne(
-    id: string,
-  ) {
+  //--------------------------------------------------------
+  // FIND ONE
+  //--------------------------------------------------------
+
+  async findOne(id: string) {
+
     const teacher =
       await this.teacherRepository.findById(id);
 
@@ -146,10 +240,15 @@ export class TeacherService {
     return teacher;
   }
 
+  //--------------------------------------------------------
+  // UPDATE
+  //--------------------------------------------------------
+
   async update(
     id: string,
-    updateTeacherDto: UpdateTeacherDto,
+    dto: UpdateTeacherDto,
   ) {
+
     const teacher =
       await this.teacherRepository.findById(id);
 
@@ -161,26 +260,25 @@ export class TeacherService {
 
     return this.teacherRepository.update(
       id,
-      updateTeacherDto,
+      dto,
     );
   }
+
+  //--------------------------------------------------------
+  // DELETE
+  //--------------------------------------------------------
 
   async remove(
     id: string,
     deletedBy: string,
   ) {
+
     const teacher =
       await this.teacherRepository.findById(id);
 
     if (!teacher) {
       throw new NotFoundException(
         'Teacher not found',
-      );
-    }
-
-    if (teacher.isDeleted) {
-      throw new BadRequestException(
-        'Teacher is already deleted',
       );
     }
 
